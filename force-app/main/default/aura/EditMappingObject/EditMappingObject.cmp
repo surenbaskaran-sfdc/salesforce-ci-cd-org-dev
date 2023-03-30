@@ -1,0 +1,193 @@
+<aura:component controller="SFConnectController" implements="lightning:actionOverride,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction,forceCommunity:availableForAllPageTypes,force:appHostable,lightning:isUrlAddressable,lightning:hasPageReference" access="global">
+    
+    
+	<aura:attribute name="mappingObjectRecordId" type="String" default=""/>    
+    <aura:attribute name="callingFrom" type="String" default=""/>    
+	<aura:attribute name="mappingObjectDetail" type="Mapping_Object__c" default="{'sobjectType': 'Mapping_Object__c','Name': '','Datastore__c':'','Description__c': ''}"/>
+    <aura:attribute name="allObjectsList" type="List" default="[]"/>    
+    <aura:attribute name="dataStorePicklistValues" type="List" default="[]"/>    
+    <aura:attribute name="ownerDetails" type="String" default=""/>    
+    <aura:attribute name="description" type="String" default=""/>        
+    <aura:attribute name="objectName" type="String" default=""/>  
+    
+    <aura:attribute name="isActiveDisabled" type="boolean" default="false"/>
+    <aura:attribute name="isActive" type="Boolean" default="true"/>
+    <aura:attribute name="isDisabled" type="Boolean" default="false"/>
+    <aura:attribute name="isUsed" type="Boolean" default="false"/>
+    <aura:attribute name="isErrorFound" type="Boolean" default="false"/>
+    <aura:attribute name="IsUsedInContractRule" type="Boolean" default="false"/>
+    
+    
+    <aura:attribute name="loadingSpinner" type="boolean" default="false"/>
+    <aura:attribute name="errorText" type="String" default=""/>
+    <aura:attribute name="DatastoreError" type="String" default=""/>
+    <aura:attribute name="objectError" type="String" default=""/>    
+    
+    <aura:registerEvent name="cancelEditEvent" type="c:cancelEvent" />     
+    
+    <aura:attribute name="pageReference" type="Object" />
+    <aura:handler name="change" value="{!v.pageReference}" action="{!c.handlePageChange}" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>                                        
+    <section role="dialog" aria-labelledby="modal-heading-01" aria-modal="true"
+             aria-describedby="modal-content-id-1" class="slds-modal slds-slide-up-saving slds-modal_small">                
+        <div class="slds-modal__container" style="min-width: 600px;" >
+            
+            <header class="slds-modal__header">
+                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Edit Object</h2>
+                <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick="{!c.closeObjectCreateModal}">
+                    <lightning:icon class="some-indicator" size="small" iconName="utility:close"
+                                    alternativeText="Utility image" />
+                    <span class="slds-assistive-text">Close</span>
+                </button>
+            </header>                      
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1"
+                 onkeyup="{!c.onPressKey}">
+                <aura:if isTrue="{!v.isErrorFound}">
+                    <div  class=" slds-p-horizontal_medium ">
+                        <div class="genericNotification slds-p-horizontal_medium">
+                            <span class="genericError uiOutputText" data-aura-rendered-by="2518:0" data-aura-class="uiOutputText">Review the errors on this page.</span>
+                        </div>                          
+                        <div class="toastMessage slds-p-horizontal_medium slds-p-vertical_small" style="color:rgb(194, 57, 52)">{!v.errorText}</div>                                                                                                
+                    </div>                                 
+                </aura:if> 
+                
+                <aura:if isTrue="{!v.loadingSpinner}">
+                    <div class="slds-is-relative">
+                        <br />
+                        <br />
+                        <br />
+                        <br />
+                        <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+                    </div>
+                    <aura:set attribute="else">
+                        
+                        <div class="slds-p-around_large" id="modala">  
+                            
+                            <div class="slds-grid slds-gutters_small full cols-2 forcePageBlockSectionRow" data-aura-rendered-by="7049:0" data-aura-class="forcePageBlockSectionRow">
+                                
+                                
+                                <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                    <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                        <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                            <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">Datastore</span>
+                                                <span class="required " data-aura-rendered-by="7018:0">*</span></label>
+                                            <div data-aura-rendered-by="8172:0" class="" data-aura-class="">  
+                                                <aura:if isTrue="{!v.isUsed == true}">
+                                                    <lightning:input name="datastore" 
+                                                                     class="{!v.DatastoreError+' label-hidden'}"  
+                                                                     label="Text field with predefined value" 
+                                                                     disabled="{!v.isUsed}" 
+                                                                     value="{!v.mappingObjectDetail.Datastore__c}" 
+                                                                     maxlength="100" />
+                                                    <aura:set attribute="else">                                        
+                                                        <lightning:select aura:id="dataStore" 
+                                                                          disabled="{!v.isUsed}" 
+                                                                          class="{!v.DatastoreError+' label-hidden'}" 
+                                                                          variant="label-hidden" 
+                                                                          value="{!v.mappingObjectDetail.Datastore__c}" 
+                                                                          onchange="{!c.handleOnchangeDatastore}">
+                                                            <option value="">--None--</option>
+                                                            <aura:iteration items="{!v.dataStorePicklistValues}" var="option">
+                                                                <option text="{!option.label}" value="{!option.value}" selected="{!option.value == v.mappingObjectDetail.Datastore__c}"/>
+                                                            </aura:iteration>                                            
+                                                        </lightning:select>                                                      
+                                                    </aura:set>
+                                                </aura:if>                                            
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <aura:if isTrue="{!v.mappingObjectDetail.Datastore__c == 'Salesforce'}">                            
+                                    <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                        <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                            <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                                <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">Object Name</span>
+                                                    <span class="required " data-aura-rendered-by="7018:0">*</span></label>
+                                                <div data-aura-rendered-by="8172:0" class="" data-aura-class=""> 
+                                                    
+                                                    <aura:if isTrue="{!v.isUsed == true}">
+                                                        <lightning:input name="input1" class="{!v.objectError+' label-hidden'}"  label="Text field with predefined value" disabled="{!v.isUsed}" value="{!v.mappingObjectDetail.Name}" maxlength="100" />
+                                                        <aura:set attribute="else">
+                                                            <lightning:select aura:id="sfobjectName" disabled="{!v.isUsed}" class="{!v.objectError+' label-hidden'}" value="{!v.mappingObjectDetail.Name}">
+                                                                <option value="">--None--</option>
+                                                                <aura:iteration items="{!v.allObjectsList}" var="option" >
+                                                                    <option text="{!option}" value="{!option}"/>
+                                                                </aura:iteration>                                            
+                                                            </lightning:select>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>                                    
+                                    <aura:set attribute="else">
+                                        <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7042:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                            <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7043:0">
+                                                <div class="slds-form-element__control" data-aura-rendered-by="7044:0" >
+                                                    <div data-aura-rendered-by="8181:0" class="uiInput uiInputPhone uiInput--default uiInput--input" data-aura-class="uiInput uiInputPhone uiInput--default uiInput--input">
+                                                        <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7033:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="required " data-aura-rendered-by="8177:0">*</span>
+                                                            <span class="" data-aura-rendered-by="8168:0">Object Name</span></label>                                                        
+                                                        <lightning:input name="input2" class="{!v.objectError+' label-hidden'}"  label="Text field with predefined value" disabled="{!v.isUsed}" value="{!v.mappingObjectDetail.Name}" maxlength="100" />
+                                                        <!--input value="{!v.objectName}" disabled="{!v.isDisabled}" maxlength="100" type="tel" id="7033:0"/-->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>                                        
+                                    </aura:set>
+                                </aura:if>                                        
+                            </div>
+                            <div class="slds-grid slds-gutters_small full cols-2 forcePageBlockSectionRow" data-aura-rendered-by="7049:0" data-aura-class="forcePageBlockSectionRow">
+                                <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7042:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                    <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7043:0">
+                                        <div class="slds-form-element__control" data-aura-rendered-by="7044:0" >
+                                            <div data-aura-rendered-by="8181:0" class="uiInput uiInputPhone uiInput--default uiInput--input" data-aura-class="uiInput uiInputPhone uiInput--default uiInput--input">
+                                                <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7034:0" data-aura-rendered-by="8176:0" data-aura-class="uiLabel">                                                
+                                                    <span class="" data-aura-rendered-by="8177:0">Description</span><!--render facet: 8179:0--><!--render facet: 8180:0--></label>
+                                                <!--textarea class="input" value="{!v.description}" maxlength="100" type="tel" aria-describedby="" placeholder="" id="7034:0" data-aura-rendered-by="7037:0" data-interactive-lib-uid="85"/-->
+                                                <lightning:textarea name="Description" class="label-hidden"  label="Description" value="{!v.mappingObjectDetail.Description__c}"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7042:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                    <div class="slds-form-element">
+                                        <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7035:0" data-aura-rendered-by="8176:0" data-aura-class="uiLabel">                                                
+                                            <span class="" data-aura-rendered-by="8177:0">Active</span><!--render facet: 8179:0--><!--render facet: 8180:0--></label>
+                                        <div class="slds-form-element__control">
+                                            <!--span class="slds-checkbox slds-checkbox_standalone">                                        
+                                                <ui:inputCheckbox aura:id="checkbox"  disabled="{!v.isActiveDisabled}" value="{!v.mappingObjectDetail.Active__c}"/>
+                                                <span class="slds-checkbox_faux"></span>
+                                            </span-->
+                                            <aura:if isTrue="{!v.isActiveDisabled}">
+                                                <ui:outputCheckbox class="slds-form-element__static slds-grow word-break-ie11 is-read-only" aura:id="checkbox"  value="{!v.mappingObjectDetail.Active__c}"/>
+                                                <aura:set attribute="else">
+                                                    <ui:inputCheckbox aura:id="checkbox" value="{!v.mappingObjectDetail.Active__c}"/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        
+                    </aura:set>
+                </aura:if>
+                
+                
+                
+                
+                
+                
+            </div>                     
+            <footer class="slds-modal__footer">
+                <button class="slds-button slds-button_neutral" onclick="{!c.closeObjectCreateModal}">Cancel</button>                  
+                <button class="slds-button slds-button_brand" onclick="{!c.OnClickSaveRecord}">Save</button>
+            </footer>            
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>    
+</aura:component>

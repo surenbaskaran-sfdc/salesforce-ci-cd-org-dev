@@ -1,0 +1,25 @@
+.THIS .label-hidden > label {
+    display: none;
+}
+.THIS lightning-icon.some-indicator > lightning-primitive-icon > svg > use {
+  fill: white;
+}
+.THIS .genericNotification 
+{
+    font-weight:300;
+    border-radius:0.25rem;
+    font-size: 1rem;
+    background: rgb(194, 57, 52);
+    padding: 1rem;
+    color: rgb(255, 255, 255);
+    line-height:1.25;
+}
+.THIS .lookupField {
+    background-color: rgb(255, 255, 255);
+    border-color: rgb(194, 57, 52);
+    box-shadow: rgb(194, 57, 52) 0 0 0 1px inset;
+    background-clip: padding-box;
+}
+.THIS .left-align {
+    text-align: left;
+}

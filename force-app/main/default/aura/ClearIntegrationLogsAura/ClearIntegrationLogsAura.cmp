@@ -1,0 +1,84 @@
+<aura:component controller="SFConnectController" implements="lightning:actionOverride,lightning:hasPageReference,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction,forceCommunity:availableForAllPageTypes,force:appHostable,lightning:isUrlAddressable,lightning:hasPageReference" access="global">	
+    <aura:attribute name="callingFrom" type="String" default=""/>
+    <aura:attribute name="url" type="String"/>
+    <aura:attribute name="pageReference" type="Object"/>
+     <lightning:navigation aura:id="navService"/>
+    <a href="{!v.url}">Link</a>
+    <aura:dependency resource="markup://force:navigateToObjectHome" type="EVENT"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>    
+    
+    <section role="dialog" aria-labelledby="modal-heading-01" aria-modal="true"
+             aria-describedby="modal-content-id-1" class="slds-modal slds-slide-up-saving slds-modal_small">                
+        <div class="slds-modal__container" style="min-width: 800px;" >
+            
+            <header class="slds-modal__header">
+                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Clear Integration Logs</h2>
+                <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick="{!c.closeObjectCreateModal}">
+                    <lightning:icon class="some-indicator" size="small" iconName="utility:close"
+                                    alternativeText="Utility image" />
+                    <span class="slds-assistive-text">Close</span>
+                </button>
+            </header>                      
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                <aura:if isTrue="{!v.isErrorFound}">
+                    <div  class=" slds-p-horizontal_medium ">
+                        <div class="genericNotification slds-p-horizontal_medium">
+                            <span class="genericError uiOutputText" data-aura-rendered-by="2518:0" data-aura-class="uiOutputText">Review the errors on this page.</span>
+                        </div>                          
+                        <div class="toastMessage slds-p-horizontal_medium slds-p-vertical_small" style="color:rgb(194, 57, 52)">{!v.errorText}</div>                                                                                                
+                    </div>                                 
+                </aura:if>
+                <div class="slds-p-around_large" id="modala">  
+                    
+                    <aura:if isTrue="{!v.loadingSpinner}">
+                        <div class="slds-is-relative">
+                            <br />
+                            <br />
+                            <br />
+                            <br />
+                            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+                        </div>
+                        <aura:set attribute="else">
+                            
+                            <div class="slds-grid slds-gutters_small full cols-2 forcePageBlockSectionRow" data-aura-rendered-by="7049:0" data-aura-class="forcePageBlockSectionRow">                                                
+                                <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                    <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                        <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                            <span class="required " data-aura-rendered-by="7018:0">*</span>
+                                            <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">Start Date</span>
+                                            </label>
+                                            <div data-aura-rendered-by="8172:0" class="" data-aura-class="">
+                                                
+                                                <lightning:input type="date" name="input1" label="Start date" variant="label-hidden"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                    <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                        <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                            <span class="required " data-aura-rendered-by="7018:0">*</span>
+                                            <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">End Date</span>
+                                            </label>
+                                            <div data-aura-rendered-by="8172:0" class="" data-aura-class="">
+                                                <lightning:input type="date" name="input1" label="End date" variant="label-hidden" />                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div> 
+                            </div>                                                                                                
+                        </aura:set>
+                    </aura:if>
+                </div>
+            </div>                     
+            <footer class="slds-modal__footer">
+                <button class="slds-button slds-button_neutral" onclick="{!c.closeClearLogModal}">Cancel</button>                  
+                <button class="slds-button slds-button_brand" onclick="{!c.OnClickDeleteRecord}">Delete</button>
+            </footer>            
+        </div>
+    </section>
+    
+    
+</aura:component>

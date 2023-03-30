@@ -1,0 +1,22 @@
+<aura:component controller="SFConnectController" implements="lightning:actionOverride,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction,forceCommunity:availableForAllPageTypes" access="global">
+    <aura:attribute name="isNavigateToOtherTabNames" type="Boolean" default="true"
+                    description="can navigate to other tabs or not" />
+    <aura:attribute name="selectedTab" type="String" default="" description="selected tab" />
+    <lightning:card class="slds-p-horizontal_large">
+        <!--  -->
+        <lightning:tabset class="slds-tabs_default slds-tabs_medium "  selectedTabId="{!v.selectedTab}"
+                          onselect="{! c.handleNavigateTab }">
+            <lightning:tab label="Details" id="Detail" class="slds-border_top">
+                <div class="slds-m-horizontal_small">
+                    <c:MappingContractDetail aura:id="mappingContractDetail" recordId="{!v.recordId}"/>
+                </div>
+            </lightning:tab>
+            <lightning:tab label="Contract Rules" id="ContractRules" class="slds-border_top">
+                <div class="slds-m-horizontal_small">
+                    <c:ContractRulesRelatedList aura:id="contractRulesRelatedList" recordId="{!v.recordId}"/>
+                </div>
+            </lightning:tab>        
+        </lightning:tabset>
+    </lightning:card>
+    <br></br>        
+</aura:component>

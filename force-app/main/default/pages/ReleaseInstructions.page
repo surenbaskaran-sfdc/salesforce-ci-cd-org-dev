@@ -1,0 +1,16 @@
+<apex:page lightningStylesheets="true" showHeader="false">
+    <apex:includeLightning />    
+    <apex:includeScript value="/lightning/lightning.out.js" />
+    <div id="LightningComponentid" />    
+    <script>
+    $Lightning.use("SF_Connector:ReleaseInstructionsApp", function() {
+        $Lightning.createComponent("SF_Connector:ReleaseInstructions",
+          { 
+          },
+          "LightningComponentid",
+          function(cmp) {
+             console.log('Release Instructions');
+          });
+    });
+    </script>
+</apex:page>

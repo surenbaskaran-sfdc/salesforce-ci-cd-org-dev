@@ -1,0 +1,4 @@
+<aura:event type="APPLICATION" description="Error event for create object field component" >
+    <aura:attribute name="recId" type="String"/> 
+    <aura:attribute name="ObjectName" type="String"/> 
+</aura:event>

@@ -1,0 +1,118 @@
+<aura:component controller="SFConnectController" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">     
+    
+    <aura:registerEvent name="MappingContractRefreshEvent" type="c:MappingContractRefreshEvent"/>
+    
+    <aura:attribute name="mappingContractDetails" type="Mapping_Contract__c"/>    
+    <aura:attribute name="columns" type="List"/>
+    <aura:attribute name="contractRulesList" type="List"/>     
+    <aura:attribute name="tempContractRulesList" type="String"/>     
+    <aura:attribute name="contractRuleDetail" type="Contract_Rule__c"/>     
+    <aura:attribute name="tempContractRuleDetail" type="Contract_Rule__c"/>     
+    <aura:attribute name="integrationMappingList" type="List" />
+    
+    <aura:attribute name="recordToDelete" type="Contract_Rule__c" default=""/> 
+    <aura:attribute name="loadingSpinner" type="Boolean" default="false"/>
+    <aura:attribute name="onDeleteClick" type="Boolean" default="false"/>  
+    <aura:attribute name="editContractRule" type="Boolean" default="false"/>  
+    <aura:attribute name="isEditContractRule" type="Boolean" default="false"/> 
+    <aura:attribute name="isAddNewRule" type="Boolean" default="false"/> 
+    <aura:attribute name="isReorderContractRule" type="Boolean" default="false"/> 
+    <aura:attribute name="isErrorFound" type="Boolean" default="false"/> 
+    <aura:attribute name="errorText" type="String" default=""/>    	
+    <aura:handler name = "errorEvent" event="c:errorEvent" action="{!c.handleErrorEvent}" />
+    <aura:handler name = "triggerSaveCRuleEvent" event="c:triggerSaveFieldsEvent" action="{!c.handleSaveContractRule}" />    
+    <aura:handler name = "cancelCreatEvent" event="c:cancelEvent" action="{!c.handleCancelCreateContractRules}" />
+    <aura:handler name = "cancelEditEvent" event="c:cancelEvent" action="{!c.handleCancelEditContractRules}" />
+    <aura:handler name = "cancelReorderEvent" event="c:cancelEvent" action="{!c.handleCancelReorderContractRules}" />
+    
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }"/>  
+    
+    <!--aura:if isTrue="{!v.loadingSpinner}">
+        <lightning:spinner class="slds-is-fixed" alternativeText="Loading" size="large" variant="brand" /> 
+    </aura:if-->
+    
+    <!-- Object Fields List -->          
+    
+    <lightning:card  class="slds-theme_default hide-title cardStyle slds-border_right"> 
+        
+        <aura:if isTrue="{!v.loadingSpinner}">
+            <div class="slds-is-relative">
+                <br />
+                <br />
+                <br />
+                <br />
+                <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+            </div>
+            <aura:set attribute="else">
+                
+                <div class = "slds-border_right slds-border_top slds-border_bottom slds-border_left">
+                    <header class="slds-page-header">
+                        <lightning:icon iconName="custom:custom20"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;            
+                        <b class="slds-text-heading_small">Contract Rules ({!v.contractRulesList.length})</b>                                                  
+                        <lightning:buttonGroup class ="slds-float_right">
+                            <aura:if isTrue = "{!v.contractRulesList.length > 1}">                
+                                <lightning:button label="Reorder" onclick="{!c.onClickReorderContractRules}"/>                    
+                            </aura:if>
+                            <aura:if isTrue = "{!lessthan(v.contractRulesList.length , 5)}"> 
+                                <lightning:button label="New" onclick="{!c.onClickAddRules}"/> 
+                            </aura:if>
+                        </lightning:buttonGroup>                                    
+                    </header>         
+                    
+                    <aura:if isTrue = "{!v.contractRulesList.length > 0}">                
+                        <div class="slds-border_top">
+                            <lightning:datatable class="slds-grid_align-end"
+                                                 data="{!v.contractRulesList}"
+                                                 columns="{!v.columns}"                                                 
+                                                 onrowaction="{!c.handleRowAction}"
+                                                 keyField="id"
+                                                 hideCheckboxColumn="true"/>                        
+                        </div>                                
+                        <aura:set attribute="else">
+                            <div class="slds-align_absolute-center slds-text-heading_small" style="height:5rem"> No Contract Rules Found.</div>
+                        </aura:set> 
+                    </aura:if>                
+                </div>
+                
+            </aura:set>
+        </aura:if>
+    </lightning:card>           
+    
+    <aura:if isTrue = "{!v.isAddNewRule == true}">        
+		<c:NewContractRuleCreation aura:Id = "newContractRule" allContractRulesList = "{!v.contractRulesList}" mappingContractDetail = "{!v.mappingContractDetails}"/>
+    </aura:if>
+    
+    
+    <aura:if isTrue = "{!v.editContractRule == true}">
+        <c:EditContractRule aura:Id = "newContractRule" contractRuleDetail = "{!v.contractRuleDetail}" allContractRulesList = "{!v.contractRulesList}" mappingContractDetail = "{!v.mappingContractDetails}"/>
+    </aura:if>
+    
+    <aura:if isTrue = "{!v.isReorderContractRule == true}">
+        <c:ReorderContractRule aura:Id = "reorderContractRule" selectedValues = "{!v.contractRulesList}" beforeReorderList = "{!v.contractRulesList}"/>
+    </aura:if>
+    
+    
+    <aura:if isTrue = "{!v.onDeleteClick == true}">
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close"
+                                          onclick="{! c.closeDeleteModal }"
+                                          alternativeText="close"
+                                          variant="bare-inverse"
+                                          class="slds-modal__close"/>
+                    <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Delete Contract Rule</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium " id="modal-content-id-1">
+                    <div class="slds-align_absolute-center"> <p>Are you sure you want to delete this Contract Rule? </p></div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning:button name="cancel" label="Cancel" onclick="{!c.closeDeleteModal}"/>
+                    <lightning:button name="delete" label="Delete" variant="brand" onclick="{!c.handleDeleteContractRule}"/>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        
+    </aura:if>
+</aura:component>

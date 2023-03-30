@@ -1,0 +1,2 @@
+<aura:event type="APPLICATION" description="Event to refresh mapping contract detail tab when contract rule is created or deleted">
+</aura:event>

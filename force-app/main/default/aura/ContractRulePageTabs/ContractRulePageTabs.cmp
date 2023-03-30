@@ -1,0 +1,36 @@
+<aura:component controller="SFConnectController" implements="lightning:actionOverride,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction,forceCommunity:availableForAllPageTypes" access="global">
+    <aura:attribute name="isNavigateToOtherTabNames" type="Boolean" default="true"
+                    description="can navigate to other tabs or not" />
+    <aura:attribute name="selectedTab" type="String" default="" description="selected tab" />
+    <aura:attribute name="currentTab" type="String" default="" description="selected tab" />
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }"/>  
+    <lightning:card class="slds-p-horizontal_large">
+        <!--  -->
+        <lightning:tabset class="slds-tabs_default slds-tabs_medium "  selectedTabId="{!v.selectedTab}"
+                          onselect="{! c.handleNavigateTab }">
+            <lightning:tab label="Details" id="Detail" class="slds-border_top">
+                <div class="slds-m-horizontal_small">
+                    <c:ContractRuleDetail aura:id="contractRuleDetail" recordId="{!v.recordId}"/>                 
+                </div>
+            </lightning:tab>
+            <lightning:tab label="Mapping Rules" id="MappingRules" class="slds-border_top">
+                <div class="slds-m-horizontal_small">
+                    <c:MappingRulesRelatedList aura:id="mappingRulesRelatedList" recordId="{!v.recordId}"/>
+                </div>
+            </lightning:tab> 
+            <lightning:tab label="Response Rules" id="ResponseRules" class="slds-border_top">
+                <div class="slds-m-horizontal_small">
+                    <c:ResponseRulesRelatedList aura:id="responseRulesRelatedList" recordId="{!v.recordId}"/>
+                </div>
+            </lightning:tab> 
+            
+            <lightning:tab label="Conditions" id="conditions" class="slds-border_top">
+                <div class="slds-m-horizontal_small">
+                    <c:ConditionsRelatedList aura:id="ConditionsRelatedList" templateId="{!v.recordId}"/>
+                </div>
+            </lightning:tab>
+            
+        </lightning:tabset>
+    </lightning:card>
+    <br></br>        
+</aura:component>

@@ -1,0 +1,155 @@
+<aura:component controller="SFConnectController" implements="lightning:actionOverride,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction,forceCommunity:availableForAllPageTypes,force:appHostable,lightning:isUrlAddressable,lightning:hasPageReference" access="global">
+    
+    <aura:attribute name="templateId" type="Id" Description="Contains NOP Template Id" />
+    <aura:attribute name="fieldName" type="String" />
+    <aura:attribute name="spinner" type="Boolean" default="True"/>
+    <aura:attribute name="currentSecIndex" type="Integer" />
+    <aura:attribute name="currentTab" type="String" description="After saving the Tab should display same tab Name" />
+    <aura:attribute name="allValues" type="Object[]" description="all available values for this field"
+                    access="public" />
+    <aura:attribute name="selectedValues" type="Object[]" description="selected values on this field" access="public" />
+    <aura:attribute name="beforeReorderList" type="Object[]" description="selected values on this field"
+                    access="public" />
+    <aura:attribute name="MappingConId" type="String" description="selected values on this field" access="public" />
+    <aura:attribute name="items" type="Object[]" description="items on the left - source" access="private" />
+    <aura:attribute name="selectedItems" type="Object[]" description="items on the right - destination"
+                    access="public" />
+    <aura:attribute name="AllInputTabNamesList" type="List" description="To store all tab names" />
+    <aura:attribute name="sourceHighlightedItem" type="Object"
+                    description="an item ready to be transferred to the selectedItems array" access="private" />
+    <aura:attribute name="sourceHighlightedItems" type="Object[]"
+                    description="a set of items ready to be transferred to the selectedItems array" access="private" />
+    
+    <aura:attribute name="destHighlightedItem" type="Object"
+                    description="an item ready to be transferred to the selectedItems array" access="private" />
+    <aura:attribute name="destHighlightedItems" type="Object[]"
+                    description="a set of items ready to be transferred to the selectedItems array" access="private" />
+    
+    <aura:attribute name="storedTimer" type="Object" description="storing a timer allows it to be cancelled"
+                    access="private" />
+    <aura:attribute name="changeEventScheduled" type="Boolean" description="set when we are scheduled to send an event"
+                    access="private" />
+    
+    <aura:attribute name="mappingContractDetail" type="Mapping_Contract__c" default=""/>
+    <aura:attribute name="contractRuleDetail" type="Contract_Rule__c" default="{'sobjectType': 'Contract_Rule__c',
+                                                                                             'Name': '',
+                                                                                             'Rule_Order__c':'',
+                                                                                             'Source_Object__c': '',
+                                                                                             'Target_Object__c':'',
+                                                                                             'Source_Record_Type__c':''}"/>
+    <aura:attribute name="allContractRulesList" type="List" default="[]"/>    
+    
+    <aura:attribute name="recordIdToDelete" type="String" default=""/>
+    
+    <aura:attribute name="externalIdList" type="List" default="[]"/>     
+    <aura:attribute name="sourceObjectRecordTypeList" type="List" default="[]"/>
+    <aura:attribute name="targetObjectsList" type="List" default="[]"/>
+    <aura:attribute name="sourceObjectsList" type="List" default="[]"/>
+    
+    <aura:attribute name="isDisabled" type="Boolean" default="false"/>
+    <aura:attribute name="isErrorFound" type="Boolean" default="false"/>
+    <aura:attribute name="loadingSpinner" type="boolean" default="false"/>
+    <aura:attribute name="errorText" type="String" default=""/>
+    
+    <aura:attribute name="objectNameError" type="String" default=""/>
+    <aura:attribute name="sourceObjectError" type="String" default=""/>
+    <aura:attribute name="targetObjectError" type="String" default=""/>
+    <aura:attribute name="recordTypeError" type="String" default=""/>
+    <aura:attribute name="externalIdError" type="String" default=""/>
+    
+    <aura:registerEvent name="cancelReorderEvent" type="c:cancelEvent" />     
+    <aura:registerEvent name="triggerSaveCRuleEvent" type="c:triggerSaveFieldsEvent" />       
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <section role="dialog" tabindex="-1" style="outline:none;" class="slds-modal slds-fade-in-open slds-modal_large slds-align_absolute-center"  aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+        <aura:if isTrue="{!v.loadingSpinner}">               
+            <lightning:spinner  alternativeText="Loading" size="medium" variant="brand" />                
+        </aura:if>
+        <div class="slds-modal__container"  style="width:600px;">
+            <header class="slds-modal__header slds-modal__header_empty">
+                <lightning:buttonIcon iconName="utility:close"
+                                      size="large"
+                                      onclick="{! c.closeRuleReorderModal }"
+                                      alternativeText="close"
+                                      variant="bare-inverse"
+                                      class="slds-modal__close"/>                    
+            </header>                     
+            <div class="slds-modal__content"  width="1000px;" style="border-bottom-left-radius:0; border-bottom-right-radius:0;"> 
+                
+                <header class="slds-modal__header">                    
+                    <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate slds-align_absolute-center">Reorder Contract Rule</h2>
+                </header>                
+                <aura:if isTrue="{!v.isErrorFound}">
+                    <div  class=" slds-p-horizontal_medium ">
+                        <div class="genericNotification slds-p-horizontal_medium">
+                            <span class="genericError uiOutputText" data-aura-rendered-by="2518:0" data-aura-class="uiOutputText">Review the errors on this page.</span>
+                        </div>                          
+                        <div class="slds-p-horizontal_medium slds-p-vertical_small" style="color:rgb(194, 57, 52)">{!v.errorText}</div>                                                                                                
+                    </div>                                 
+                </aura:if>  
+                
+                <aura:if isTrue="{!v.spinner}">
+                    <div class="slds-is-relative">
+                        <br />
+                        <br />
+                        <br />
+                        <br />
+                        <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+                    </div>
+                    <aura:set attribute="else">
+                        <div class="slds ">
+                            <aura:if isTrue="{!not(equals(v.selectedItems.length,0))}">
+                                <div class=" slds-grid slds-align_absolute-center">
+                                    <div class="slds-assistive-text" id="drag-live-region" aria-live="assertive"></div>
+                                    <div class="slds-assistive-text" id="option-drag-label">Press space bar when on an item, to move it
+                                        within the list. CMD plus left and right arrow keys, to move items between lists.</div>
+                                    <div class="slds-form-element">
+                                        <div class="slds-grid slds-gutters">
+                                            <div class="slds-form-element">
+                                                <label class="slds-form-element__label" title="Drag and Drop to Reorder Formulas"
+                                                       style="margin-right: 0.5rem;">Drag and Drop to Reorder Contract Rules.</label>
+                                            </div>
+                                        </div>
+                                        <div class="slds-grid slds-gutters">
+                                            <div aura:id="selectedItems" class="slds-picklist " role="application"
+                                                 ondragover="{!c.handleOnDragOver}" ondrop="{!c.handleOnDrop}">
+                                                <ul aria-describedby="option-drag-label" style="width:350px" aria-labelledby="label-46"
+                                                    aria-multiselectable="true" class="slds-picklist__options slds-picklist__options--multi"
+                                                    role="listbox" tabindex="0">
+                                                    <aura:iteration items="{!v.selectedItems}" var="selectedItem">
+                                                        <li aria-selected="false"
+                                                            class="{! 'slds-picklist__item slds-is-draggable ' + selectedItem.style}"
+                                                            draggable="true" id="{!selectedItem.sort}"
+                                                            onclick="{!c.handleListClickDestination}"
+                                                            ondragstart="{!c.handleDragStartFromDestination}" ondrop="{!c.handleOnDropSelf}"
+                                                            role="option" tabindex="0">
+                                                            <span class="slds-truncate">{!selectedItem.sort} : {!selectedItem.Name}</span>
+                                                        </li>
+                                                    </aura:iteration>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br></br>
+                                <aura:set attribute="else">
+                                    <br></br>
+                                    <div class="slds-truncate slds-align_absolute-center slds-text-heading_medium">No Formula is available
+                                        to Reorder.</div>
+                                    <br></br>
+                                </aura:set>
+                            </aura:if>
+                        </div>
+                    </aura:set>
+                </aura:if>
+                
+            </div>                     
+            <footer class="slds-modal__footer">
+                <button class="slds-button slds-button_neutral" onclick="{!c.closeRuleReorderModal}">Cancel</button>                  
+                <button class="slds-button slds-button_brand" onclick="{!c.OnClickSaveRecord}">Save</button>
+            </footer>            
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>    
+</aura:component>

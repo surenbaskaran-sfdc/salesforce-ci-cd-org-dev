@@ -1,0 +1,301 @@
+<aura:component controller="SFConnectController" implements="lightning:actionOverride,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction,forceCommunity:availableForAllPageTypes,force:appHostable,lightning:isUrlAddressable,lightning:hasPageReference" access="global">        
+    
+    <aura:attribute name="childNamesMap" type="Object"/>
+
+    <aura:attribute name="mappingContractDetail" type="Mapping_Contract__c" default=""/>
+    <aura:attribute name="contractRuleDetail" type="Contract_Rule__c" default="{'sobjectType': 'Contract_Rule__c','Name': '','Rule_Order__c':'','Source_Object__c': '','Target_Object__c':'','Source_Record_Type__c':''}"/>
+    <aura:attribute name="allContractRulesList" type="List" default="[]"/>    
+    <aura:attribute name="ownerDetails" type="sObject" default=""/>    
+    <aura:attribute name="recordIdToDelete" type="String" default=""/>    
+    <aura:attribute name="fields" type="String[]" default="['Mapping_Contract__c']" />
+    <aura:attribute name="externalIdList" type="List" default="[]"/>     
+    <aura:attribute name="sourceObjectRecordTypeList" type="List" default="[]"/>
+    <aura:attribute name="targetObjectsList" type="List" default="[]"/>
+    <aura:attribute name="sourceObjectsList" type="List" default="[]"/>
+    
+    <aura:attribute name="isNameDisabled" type="Boolean" default="false"/>
+    <aura:attribute name="mappingContractDetails" type="Mapping_Contract__c"/>    
+    <aura:attribute name="integrationMappingList" type="List" />
+
+    
+    <aura:attribute name="isAvailableMappingRules" type="Boolean" default="false"/>
+    <aura:attribute name="isDisabled" type="Boolean" default="false"/>
+    <aura:attribute name="isErrorFound" type="Boolean" default="false"/>
+    <aura:attribute name="loadingSpinner" type="boolean" default="false"/>
+    <aura:attribute name="errorText" type="String" default=""/>
+    <aura:attribute name="showEditIcon" type="boolean" default="true"/>
+    <aura:attribute name="isEditPage" type="boolean" default="false"/>
+    
+    <aura:attribute name="objectNameError" type="String" default=""/>
+    <aura:attribute name="sourceObjectError" type="String" default=""/>
+    <aura:attribute name="targetObjectError" type="String" default=""/>
+    <aura:attribute name="recordTypeError" type="String" default=""/>
+    <aura:attribute name="externalIdError" type="String" default=""/>    
+    
+    <aura:attribute name="openSystemInformation" type="Boolean" default="true"/>    
+    <aura:attribute name="Systemicon" type="String" default="utility:chevronright"/>  
+    <aura:handler event="c:triggerInitTabsEvent" action="{!c.handleRefreshComponent}" />        
+    
+    <aura:attribute name="timeZone" type="String"/> 
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    
+    
+    <div class="slds-p-around--none slds-panel__section" ondblclick = "{!c.changeEditLayout}">          
+        <div class="slds-section slds-is-open">
+            
+            <aura:if isTrue="{!v.loadingSpinner}">               
+                <div class="slds-is-relative">
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+                </div>
+                <aura:set attribute="else">
+                    <div class="slds-grid slds-grid slds-wrap slds-grid--pull-padded">    
+                        
+                        <div class="slds-p-horizontal--small slds-size--1-of-2">
+                            <div class="slds-form-element-edit slds-hint-parent slds-has-divider--bottom slds-p-around--x-small hasDiv">                                                
+                                <label class="slds-form-element__label"><p class="required">*</p>Contract Rule Name</label>                                                      
+                                <div class="slds-form-element__control" style="min-height: 18px;">   
+                                    <aura:if isTrue="{!v.isEditPage}">   
+                                        <lightning:input  class="{!v.objectNameError + ' label-hidden'}" disabled = "{!v.isNameDisabled}" value="{!v.contractRuleDetail.Name}" maxlength="255"/>
+                                        <aura:set attribute="else"> 
+                                            <div class="slds-grid">
+                                                <span class="slds-form-element__static slds-grow word-break-ie11 is-read-only" >{!v.contractRuleDetail.Name}</span>
+                                                <aura:if isTrue="{!v.showEditIcon}"> 
+                                                    <aura:if isTrue="{!not(v.isNameDisabled)}">
+                                                    <span class="slds-float--right litIcon" onclick="{!c.changeEditLayout}">
+                                                        <lightning:icon iconName="utility:edit" size="xx-small" alternativeText="Indicates approval"/>
+                                                    </span>
+                                                </aura:if>
+                                                </aura:if>
+                                            </div>
+                                        </aura:set>
+                                    </aura:if>
+                                </div>                        
+                            </div>                    
+                        </div>
+                        
+                        <div class="slds-p-horizontal--small slds-size--1-of-2">
+                            <div class="slds-form-element-edit slds-hint-parent slds-has-divider--bottom slds-p-around--x-small hasDiv">                                                
+                                <label class="slds-form-element__label">Rule Order</label>                                                      
+                                <div class="slds-form-element__control" style="min-height: 18px;">   
+                                    <aura:if isTrue="{!v.isEditPage}">   
+                                        <lightning:input  class="label-hidden" value="{!v.contractRuleDetail.Rule_Order__c}" maxlength="50" disabled = "true" />
+                                        <aura:set attribute="else"> 
+                                            <div class="slds-grid">
+                                                <span class="slds-form-element__static slds-grow word-break-ie11 is-read-only" >{!v.contractRuleDetail.Rule_Order__c}</span>
+                                                <aura:if isTrue="{!v.showEditIcon}"> 
+                                                    <!--span class="slds-float-right litIcon" onclick="{!c.changeEditLayout}">
+                                                        <lightning:icon iconName="utility:edit" size="xx-small" alternativeText="Indicates approval"/>
+                                                    </span-->
+                                                </aura:if>
+                                            </div>
+                                        </aura:set>
+                                    </aura:if>
+                                </div>                        
+                            </div>                    
+                        </div>
+                        
+                        <div class="slds-p-horizontal--small slds-size--1-of-2">
+                            <div class="slds-form-element slds-hint-parent slds-has-divider--bottom slds-p-around--x-small hasDiv">                                                
+                                <label class="slds-form-element__label"><p class="required">*</p>Source Object</label>                                                                                                                             
+                                <div class="slds-form-element__control" style="min-height: 18px;">  
+                                    <aura:if isTrue="{!v.isEditPage}">    
+                                        
+                                        <aura:if isTrue="{!v.isAvailableMappingRules}">                                                
+                                            <lightning:input aura:id="sourceAndTargetObjectId" 
+                                                             class="{!v.sourceObjectError + 'label-hidden'}" 
+                                                             disabled = "{!v.isAvailableMappingRules}" 
+                                                             value="{!v.contractRuleDetail.Source_Object__c}"/>                                            
+                                            <aura:set attribute="else">                                                
+                                                <lightning:select aura:id="sourceAndTargetObjectId" 
+                                                                  name = "Source Object" 
+                                                                  disabled = "{!v.isAvailableMappingRules}" 
+                                                                  class="{!v.sourceObjectError + 'label-hidden'}" 
+                                                                  value="{!v.contractRuleDetail.Source_Object__c}"  onchange="{!c.onChangeSourceObjectPickList}">
+                                                    <option value="">--None--</option>
+                                                    <aura:iteration items="{!v.sourceObjectsList}" var="item">
+                                                        <option text="{!item.label}" value="{!item.label}" selected="{!item.label == v.contractRuleDetail.Source_Object__c}"/>
+                                                    </aura:iteration>                                          
+                                                </lightning:select> 
+                                            </aura:set>
+                                        </aura:if>
+                                        <aura:set attribute="else">
+                                            <ui:outputText class="slds-output" value="{!v.contractRuleDetail.Source_Object__c}" />
+                                            <aura:if isTrue="{!v.showEditIcon}"> 
+                                                <aura:if isTrue="{!not(v.isAvailableMappingRules)}">
+                                                    <span class="slds-float--right litIcon editIcon" onclick="{!c.changeEditLayout}">
+                                                        <lightning:icon iconName="utility:edit" size="xx-small" alternativeText="Indicates approval"/>
+                                                    </span>
+                                                </aura:if>
+                                            </aura:if>
+                                        </aura:set>
+                                    </aura:if>
+                                </div>
+                            </div>
+                        </div>                
+                        
+                        <div class="slds-p-horizontal--small slds-size--1-of-2">
+                            <div class="slds-form-element slds-hint-parent slds-has-divider--bottom slds-p-around--x-small hasDiv">                                                
+                                <label class="slds-form-element__label"><p class="required">*</p>Target Object</label>                                                                                                                             
+                                <div class="slds-form-element__control" style="min-height: 18px;">  
+                                    <aura:if isTrue="{!v.isEditPage}">  
+                                        
+                                        <aura:if isTrue="{!v.isAvailableMappingRules}">
+                                            <lightning:input aura:id="sourceAndTargetObjectId1" 
+                                                              class="{!v.targetObjectError + 'label-hidden'}" 
+                                                             value="{!v.contractRuleDetail.Target_Object__c}" 
+                                                             disabled = "{!v.isAvailableMappingRules}"/>
+                                            <aura:set attribute="else">                                                
+                                                
+                                        <lightning:select aura:id="sourceAndTargetObjectId1" name = "Target Object" disabled = "{!v.isAvailableMappingRules}" class="{!v.targetObjectError + 'label-hidden'}" value="{!v.contractRuleDetail.Target_Object__c}"  onchange="{!c.onChangeTargetObjectPickList}">
+                                            <option value="">--None--</option>
+                                            <aura:iteration items="{!v.targetObjectsList}" var="item">
+                                                <option text="{!item.label}" value="{!item.label}"  selected="{!item.label == v.contractRuleDetail.Target_Object__c}"/>
+                                            </aura:iteration>                                          
+                                        </lightning:select> 
+                                            </aura:set>
+                                        </aura:if>
+                                        
+                                        
+                                                                                                       
+                                        <aura:set attribute="else">
+                                            <ui:outputText class="slds-output" value="{!v.contractRuleDetail.Target_Object__c}" />
+                                            <aura:if isTrue="{!v.showEditIcon}"> 
+                                                <aura:if isTrue="{!not(v.isAvailableMappingRules)}">
+                                                    <span class="slds-float--right litIcon editIcon" onclick="{!c.changeEditLayout}">
+                                                        <lightning:icon iconName="utility:edit" size="xx-small" alternativeText="Indicates approval"/>
+                                                    </span>
+                                                </aura:if>
+                                            </aura:if>
+                                        </aura:set>
+                                    </aura:if>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-p-horizontal--small slds-size--1-of-2">
+                            <div class="slds-form-element slds-hint-parent slds-has-divider--bottom slds-p-around--x-small hasDiv">                                                
+                                
+                                                                                                
+                                <aura:if isTrue="{!v.mappingContractDetail.Source_Datastore__c == 'Salesforce'}">                                    
+                                    <label class="slds-form-element__label">Source Record Type</label>      
+                                    <aura:set attribute="else">                                        
+                                        <label class="slds-form-element__label">Target Record Type</label>      
+                                    </aura:set>
+                                </aura:if>
+                                <div class="slds-form-element__control" style="min-height: 18px;">  
+                                    <aura:if isTrue="{!v.isEditPage}">                                   
+                                        <lightning:select aura:id="datastore" class="label-hidden" value="{!v.contractRuleDetail.Source_Record_Type__c}">
+                                            <option value="">--None--</option>
+                                            <aura:iteration items="{!v.sourceObjectRecordTypeList}" var="item">
+                                                <option text="{!item.label}" value="{!item.label}"  selected="{!item.label == v.contractRuleDetail.Source_Record_Type__c}"/>
+                                            </aura:iteration>                                          
+                                        </lightning:select>                                                                
+                                        <aura:set attribute="else">
+                                            <ui:outputText class="slds-output" value="{!v.contractRuleDetail.Source_Record_Type__c}" />
+                                            <aura:if isTrue="{!v.showEditIcon}"> 
+                                                <span class="slds-float--right litIcon editIcon" onclick="{!c.changeEditLayout}">
+                                                    <lightning:icon iconName="utility:edit" size="xx-small" alternativeText="Indicates approval"/>
+                                                </span>
+                                            </aura:if>
+                                        </aura:set>
+                                    </aura:if>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-p-horizontal--small slds-size--1-of-2">
+                            <div class="slds-form-element slds-hint-parent slds-has-divider--bottom slds-p-around--x-small hasDiv">                                                
+                                <label class="slds-form-element__label"><p class="required">*</p>External Id</label>
+                                <lightning:helptext class="" iconName="utility:info" content="Reference Id for external datastore." />
+                                <div class="slds-form-element__control" style="min-height: 18px;">  
+                                    <aura:if isTrue="{!v.isEditPage}">                                   
+                                        <lightning:select aura:id="datastore" class="{!v.externalIdError + 'label-hidden'}" value="{!v.contractRuleDetail.External_Id__c}"  onchange="{!c.onChangeExternalIdPickList}">
+                                            <option value="">--None--</option>
+                                            <aura:iteration items="{!v.externalIdList}" var="item">
+                                                <option text="{!item.label}" value="{!item.label}"  selected="{!item.label == v.contractRuleDetail.External_Id__c}"/>
+                                            </aura:iteration>                                          
+                                        </lightning:select>                                                                
+                                        <aura:set attribute="else">
+                                            <ui:outputText class="slds-output" value="{!v.contractRuleDetail.External_Id__c}" />
+                                            <aura:if isTrue="{!v.showEditIcon}"> 
+                                                <span class="slds-float--right litIcon editIcon" onclick="{!c.changeEditLayout}">
+                                                    <lightning:icon iconName="utility:edit" size="xx-small" alternativeText="Indicates approval"/>
+                                                </span>
+                                            </aura:if>
+                                        </aura:set>
+                                    </aura:if>
+                                </div>
+                            </div>
+                        </div>                        
+                    </div>
+                    
+                    <div class="slds-grid slds-gutters">
+                            <div class="slds-p-horizontal--small slds-size--1-of-2">
+                                <div class="slds-form-element slds-hint-parent slds-has-divider--bottom slds-p-around--x-small hasDiv">                                                
+                                    <label class="slds-form-element__label">Mapping Contract</label>                                                      
+                                    <div class="slds-form-element__control" style="min-height: 18px;">   
+                                        <a href="{!'/lightning/r/Mapping_Contract__c/'+v.mappingContractDetail.Id+'/view'}">{!v.mappingContractDetail.Name}</a>
+                                        &nbsp;&nbsp;
+                                       
+                                    </div>
+                                </div>
+                            </div> 
+                            <div class="slds-p-horizontal--small slds-size--1-of-2">                               
+                            </div>
+                        </div>                                           
+                    
+                    <br/>
+                    
+                    <div style="height:1%;">
+                        <button class="accordion" onclick="{!c.onAccordianClick}">
+                            <lightning:icon iconName="{!v.Systemicon}" size="x-small"/>&nbsp;&nbsp;<b>System Information</b></button>              
+                    </div>
+                    <aura:if isTrue="{!v.openSystemInformation}">
+                        <div class="slds-grid slds-gutters">
+                            <div class="slds-p-horizontal--small slds-size--1-of-2">
+                                <div class="slds-form-element slds-hint-parent slds-has-divider--bottom slds-p-around--x-small hasDiv">                                                
+                                    <label class="slds-form-element__label">Created By</label>                                                      
+                                    <div class="slds-form-element__control" style="min-height: 18px;">   
+                                        <a href="{!'/lightning/r/User/'+v.ownerDetails.Id+'/view'}">{!v.ownerDetails.Name}</a>
+                                        &nbsp;&nbsp;
+                                        <lightning:formattedDateTime value="{!v.contractRuleDetail.CreatedDate}" year="numeric" month="numeric" day="numeric" hour="2-digit"
+                                                                     minute="2-digit" timeZone="{!v.timeZone}"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-p-horizontal--small slds-size--1-of-2">
+                                <div class="slds-form-element slds-hint-parent slds-has-divider--bottom slds-p-around--x-small hasDiv">                                                
+                                    <label class="slds-form-element__label">Last Modified By</label>                                                      
+                                    <div class="slds-form-element__control" style="min-height: 18px;">                                  
+                                        <a href="{!'/lightning/r/User/'+v.ownerDetails.Id+'/view'}">{!v.ownerDetails.Name}</a>
+                                        &nbsp;&nbsp;
+                                        <lightning:formattedDateTime value="{!v.contractRuleDetail.LastModifiedDate}" year="numeric" month="numeric" day="numeric" hour="2-digit"
+                                                                     minute="2-digit" timeZone="{!v.timeZone}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </aura:if>
+                </aura:set>
+            </aura:if>             
+        </div>                                                     
+        <aura:if isTrue="{!v.isEditPage}">
+            <div class="slds-align--absolute-center slds-docked-form-footer">
+                <button type="button" class="slds-button slds-button--neutral" onclick="{!c.clickCancel}" aura:id="btnCancel">
+                    Cancel
+                </button>
+                <button type="button" class="slds-button slds-button--brand" onclick="{!c.OnClickSaveRecord}" aura:id="btnSave">
+                    Save
+                </button>                
+            </div> 
+        </aura:if>
+        
+    </div>
+    
+</aura:component>

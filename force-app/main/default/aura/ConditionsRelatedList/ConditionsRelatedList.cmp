@@ -1,0 +1,290 @@
+<aura:component controller="SFConnectController" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">     
+       
+    <aura:attribute name="templateId" type="Id" Description="Contains NOP Template Id" />
+    <aura:attribute name="contractRuleRecord" type="Object" Description="Current Template Record" />
+    <aura:attribute name="conditions" type="Object" Description="Contains all the conditions" />
+    <aura:attribute name="fieldNames" type="List" Description="contains all the field Names" />
+    <aura:attribute name="showCancelSaveButton" type="Boolean" default="False" Description="Show or Hide Save and Cancel button" />
+    <aura:attribute name="isDeleteLabel"  type="Boolean" default="False" Description="Show or Hide delete modal" />
+    <aura:attribute name="allPickList" type="List" />
+    <aura:attribute name="deleteIndex" type="String" description="stores the current delete index" />
+    <aura:attribute name="fieldType" type="Object" Description="contains the data type of the field" />
+    <aura:attribute name="textOperator" type="List" Description="text field Operators" default="[
+                                                                                                {'label': 'CONTAINS', 'value': 'CONTAINS'},
+                                                                                                {'label': 'EQUALS', 'value': 'EQUALS'},
+                                                                                                {'label': 'ENDS WITH', 'value': 'ENDS WITH'},
+                                                                                                {'label': 'GREATER THAN', 'value': 'GREATER THAN'},
+                                                                                                {'label': 'GREATER THAN EQUAL', 'value': 'GREATER THAN EQUAL'},
+                                                                                                {'label': 'IS NULL', 'value': 'IS NULL'},
+                                                                                                {'label': 'LESSER THAN', 'value': 'LESSER THAN'},
+                                                                                                {'label': 'LESSER THAN EQUAL', 'value': 'LESSER THAN EQUAL'},
+                                                                                                {'label': 'NOT EQUALS', 'value': 'NOT EQUALS'},
+                                                                                                {'label': 'STARTS WITH', 'value': 'STARTS WITH'},
+                                                                                                ]" />
+    <aura:attribute name="numberOperator" type="List" Description="Number field operators" default="[
+                                                                                                    {'label': 'EQUALS', 'value': 'EQUALS'},
+                                                                                                    {'label': 'GREATER THAN', 'value': 'GREATER THAN'},
+                                                                                                    {'label': 'GREATER THAN EQUAL', 'value': 'GREATER THAN EQUAL'},
+                                                                                                    {'label': 'IS NULL', 'value': 'IS NULL'},
+                                                                                                    {'label': 'LESSER THAN', 'value': 'LESSER THAN'},
+                                                                                                    {'label': 'LESSER THAN EQUAL', 'value': 'LESSER THAN EQUAL'},
+                                                                                                    {'label': 'NOT EQUALS', 'value': 'NOT EQUALS'},
+                                                                                                    ]" />
+    <aura:attribute name="booleanOperator" type="List" Description="Boolean field Operators" default="[
+                                                                                                      {'label': 'EQUALS', 'value': 'EQUALS'},
+                                                                                                      {'label': 'NOT EQUALS', 'value': 'NOT EQUALS'}
+                                                                                                      ]" />
+    <aura:attribute name="booleanValue" type="List" Description="Boolean field values" default="[
+                                                                                                {'label': 'FALSE', 'value': 'FALSE'},
+                                                                                                {'label': 'TRUE', 'value': 'TRUE'},
+                                                                                                ]" />
+    <aura:attribute name="hasAccess" type="boolean" default="true"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <div aura:id="uSpinnerContainer" class="userSpinner">
+        <lightning:spinner variant="brand" aura:id="uSpinner" />
+    </div>
+    
+    <aura:if isTrue="{!v.hasAccess}">
+        <aura:if isTrue="{!v.conditions.conditions.length > 0}">
+            <div>
+                <span style="float:right" class="slds-p-top_x-small">
+                    <lightning:input type="radio" class="{!v.conditions.customConditionStyle}" label="Custom" title="Custom"
+                                     value="Custom" checked="{!v.conditions.customCondition}" onchange="{!c.onRadioSelect}" />
+                </span>
+                <span style="float:right" class="slds-p-top_x-small">
+                    <lightning:input type="radio" label="Any" title="Any" class="{!v.conditions.orConditionStyle}"
+                                     value="Any" checked="{!v.conditions.orCondition}" onchange="{!c.onRadioSelect}" />
+                </span>
+                <span style="float:right" class="slds-p-top_x-small">
+                    <lightning:input type="radio" label="All" title="All" class="{!v.conditions.andConditionStyle}"
+                                     value="All" checked="{!v.conditions.andCondition}" onchange="{!c.onRadioSelect}" />
+                </span>
+                <span class="slds-p-right_medium slds-p-bottom_x-small" style="float:right">
+                    <aura:if isTrue="{!v.conditions.customCondition}">
+                        <lightning:input name="customCondtion" class="{!v.conditions.customFormulaStyle}"
+                                         value="{!v.conditions.customFormula}" title="{!v.conditions.customFormula}"
+                                         variant="label-hidden" placeholder="1OR(2AND3)" onchange="{!c.onCustomFormulaChange}" />
+                    </aura:if>
+                </span>
+            </div>
+            <br></br>
+            <br></br>
+            <br></br>
+            <div class="slds-border_right  slds-border_left">
+                <div class="container-fluid">
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                        <thead>
+                            <tr class="slds-text-title_caps">
+                                <th scope="col" width="5%">
+                                    <div class="slds-truncate slds-align_absolute-center" title="Sl.No">Sl.No</div>
+                                </th>
+                                <th scope="col" width="30%">
+                                    <div class="slds-truncate slds-align_absolute-center" title="Field">
+                                        <p class="required">*</p>Field
+                                    </div>
+                                </th>
+                                <th scope="col" width="30%">
+                                    <div class="slds-truncate slds-align_absolute-center" title="Operator">
+                                        <p class="required">*</p>Operator
+                                    </div>
+                                </th>
+                                <th scope="col" width="30%">
+                                    <div class="slds-truncate slds-align_absolute-center" title="Value">
+                                        <p class="required">&nbsp;*</p>Value&nbsp;
+                                    </div>
+                                </th>
+                                <th scope="col" width="5%">
+                                    <div class="slds-truncate slds-align_absolute-center" title="Delete">Delete</div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <aura:iteration items="{!v.conditions.conditions}" var="conditions" indexVar="index">
+                                <tr>
+                                    <td>
+                                        <div class="slds-align_absolute-center">{!index + 1}</div>
+                                    </td>
+                                    <td>
+                                        <lightning:select name="{!index}" class="{!conditions.fieldStyle}"
+                                                          value="{!conditions.field}" onchange="{!c.onFieldChange}">
+                                            <option text="--None--" value="" />
+                                            <aura:iteration items="{!v.fieldNames}" var="item">
+                                                <option text="{!item.label}" value="{!item.value}"
+                                                        selected="{!item.value == conditions.field}" />
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </td>
+                                    <td>
+                                        <lightning:select name="{!index}" class="{!conditions.operatorStyle}"
+                                                          title="{!conditions.operator}" value="{!conditions.operator}"
+                                                          onchange="{!c.onOperatorChange}" disabled="{!conditions.operatorDisabled}">
+                                            <option text="--None--" value="" />
+                                            <!--picklist-->
+                                            <aura:if isTrue="{!or(conditions.fieldType =='text',conditions.fieldType == 'picklist')}">
+                                                <aura:iteration items="{!v.textOperator}" var="item">
+                                                    <option text="{!item.label}" value="{!item.value}"
+                                                            selected="{!item.value == conditions.operator}" />
+                                                </aura:iteration>
+                                                <aura:set attribute="else">
+                                                    <aura:if isTrue="{!equals(conditions.fieldType,'boolean')}">
+                                                        <aura:iteration items="{!v.booleanOperator}" var="item">
+                                                            <option text="{!item.label}" value="{!item.value}"
+                                                                    selected="{!item.value == conditions.operator}" />
+                                                        </aura:iteration>
+                                                        <aura:set attribute="else">
+                                                            <aura:iteration items="{!v.numberOperator}" var="item">
+                                                                <option text="{!item.label}" value="{!item.value}"
+                                                                        selected="{!item.value == conditions.operator}" />
+                                                            </aura:iteration>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </aura:set>
+                                            </aura:if>
+                                        </lightning:select>
+                                    </td>
+                                    <td>
+                                        <aura:if isTrue="{!equals(conditions.operatorType,'boolean')}">
+                                            <lightning:select name="{!index}" class="{!conditions.valueStyle}"
+                                                              disabled="{!conditions.valueDisabled}" value="{!conditions.value}"
+                                                              onchange="{!c.onValueChange}">
+                                                <option text="--None--" value="" />
+                                                <aura:iteration items="{!v.booleanValue}" var="item">
+                                                    <option text="{!item.label}" value="{!item.value}"
+                                                            selected="{!item.value == conditions.value}" />
+                                                </aura:iteration>
+                                            </lightning:select>
+                                            <aura:set attribute="else">
+                                                <aura:if isTrue="{!equals(conditions.operatorType,'text')}">
+                                                    <lightning:input name="{!index}" class="{!conditions.valueStyle}"
+                                                                     variant="label-hidden" disabled="{!conditions.valueDisabled}"
+                                                                     value="{!conditions.value}" title="{!conditions.value}"
+                                                                     onblur="{!c.onValueChange}"></lightning:input>
+                                                    <aura:set attribute="else">
+                                                        <aura:if isTrue="{!equals(conditions.operatorType,'date')}">
+                                                            <lightning:input name="{!index}"
+                                                                             class="{!conditions.valueStyle}" variant="label-hidden"
+                                                                             type="date" disabled="{!conditions.valueDisabled}"
+                                                                             value="{!conditions.value}" title="{!conditions.value}"
+                                                                             onchange="{!c.onValueChange}" messageWhenBadInput="Your entry does not match the allowed format dd/mm/yyyy."/>
+                                                            <aura:set attribute="else">
+                                                                <aura:if isTrue="{!equals(conditions.operatorType,'time')}">
+                                                                    <lightning:input name="{!index}"
+                                                                                     class="{!conditions.valueStyle}"
+                                                                                     variant="label-hidden" type="time"
+                                                                                     disabled="{!conditions.valueDisabled}"
+                                                                                     value="{!conditions.value}"
+                                                                                     onchange="{!c.onValueChange}"
+                                                                                     title="{!conditions.value}" />
+                                                                    <aura:set attribute="else">
+                                                                        <aura:if
+                                                                                 isTrue="{!equals(conditions.operatorType,'picklist')}">
+                                                                            <aura:iteration items="{!v.allPickList}"
+                                                                                            var="item">
+                                                                                <aura:if
+                                                                                         isTrue="{!equals(item.label,conditions.field)}">
+                                                                                    <lightning:select name="{!index}"
+                                                                                                      value="{!conditions.value}"
+                                                                                                      class="{!conditions.valueStyle}"
+                                                                                                      onchange="{!c.onValueChange}">
+                                                                                        <option text="--None--" value="" />
+                                                                                        <aura:iteration
+                                                                                                        items="{!item.value}"
+                                                                                                        var="contents">
+                                                                                            <option text="{!contents}"
+                                                                                                    value="{!contents}"
+                                                                                                    selected="{!contents == conditions.value}" />
+                                                                                        </aura:iteration>
+                                                                                    </lightning:select>
+                                                                                </aura:if>
+                                                                            </aura:iteration>
+                                                                            <aura:set attribute="else">
+                                                                                <lightning:input name="{!index}"
+                                                                                                 class="{!conditions.valueStyle}"
+                                                                                                 variant="label-hidden" type="datetime"
+                                                                                                 disabled="{!conditions.valueDisabled}"
+                                                                                                 value="{!conditions.value}"
+                                                                                                 onchange="{!c.onValueChange}"
+                                                                                                 onblur="{! c.onValueChange }"
+                                                                                                 title="{!conditions.value}" />
+                                                                            </aura:set>
+                                                                        </aura:if>
+                                                                    </aura:set>
+                                                                </aura:if>
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </aura:set>
+                                                </aura:if>
+                                            </aura:set>
+                                        </aura:if>
+                                    </td>
+                                    <td>
+                                        
+                                        <a onclick="{!c.onClickDeleteButton}" data-id="{!index}"
+                                           class="slds-align_absolute-center">
+                                            <lightning:buttonIcon aura:id="deleteIcon" iconName="utility:delete"
+                                                                  disabled="false" title="Delete" variant="bare" />
+                                        </a>
+                                    </td>
+                                </tr>
+                            </aura:iteration>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <br></br>
+            <button type="button" class="slds-button slds-button_neutral" title="Add"
+                    onclick="{!c.onClickAddRowButton}">Add</button>
+            <aura:set attribute="else">
+                <br />
+                <div class="slds-truncate slds-align_absolute-center slds-text-heading_medium"
+                     title="No Conditions available add one.">
+                    No conditions available&nbsp;<a onclick="{!c.onClickAddRowButton}">add</a>&nbsp;one.</div>
+            </aura:set>
+        </aura:if>
+        <aura:set attribute="else">
+            <div class="slds-truncate slds-align_absolute-center slds-text-heading_medium">
+                Insufficient Privilage. Contact your salesforce administrator.
+            </div>
+        </aura:set>
+    </aura:if>
+    <aura:if isTrue="{!v.showCancelSaveButton}">
+        <div class="slds-docked-form-footer">
+            <button type="button" class="slds-button slds-button_neutral" onclick="{!c.onClickCancelButton}"
+                    title="Cancel">Cancel</button>
+            <button type="button" class="slds-button slds-button_brand" title="Save"
+                    onclick="{!c.onClickSaveButton}">Save</button>
+        </div>
+    </aura:if>
+    <aura:if isTrue="{!v.isDeleteLabel}">
+        <div class="demo-only" id="modalId">
+            <section role="dialog" aria-labelledby="modal-heading-01" aria-modal="true"
+                     aria-describedby="modal-content-id-1" class="slds-modal slds-slide-up-saving slds-modal_large">
+                <div class="slds-modal__container customSizeModal" style="width: 300px;">
+                    <header class="slds-modal__header">
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Delete
+                            Condition</h2>
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                                title="Close" onclick="{!c.closeDelLabel}">
+                            <lightning:icon class="some-indicator" size="small" iconName="utility:close"
+                                            alternativeText="Utility image" />
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium " id="modal-content-id-1">
+                        <div class="slds-align_absolute-center">
+                            <p>Are you sure you want to delete this Condition?</p>
+                        </div>
+                    </div>
+                    <footer class="slds-modal__footer ">
+                        <button class="slds-button slds-button_neutral" title="Cancel"
+                                onclick="{!c.closeDelLabel}">Cancel</button>
+                        <button class="slds-button slds-button_brand" title="Delete"
+                                onclick="{!c.handleDeleteLabel}">Delete</button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </div>
+    </aura:if>
+</aura:component>

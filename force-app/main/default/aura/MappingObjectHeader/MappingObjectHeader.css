@@ -1,0 +1,3 @@
+.THIS lightning-icon.some-indicator > lightning-primitive-icon > svg > use {
+  fill: white;
+}

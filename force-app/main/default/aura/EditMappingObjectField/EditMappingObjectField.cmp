@@ -1,0 +1,207 @@
+<aura:component controller="SFConnectController"
+                implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes"
+                access="global">
+    
+    
+    <aura:attribute name="mappingObjectFieldDetailStr" type="String" default=""/>
+    <aura:attribute name="mappingObjectDetail" type="Mapping_Object__c" default="{'sobjectType': 'Mapping_Object__c',
+                                                                                 'Name': '',
+                                                                                 'Datastore__c':'',
+                                                                                 'Description__c': '',
+                                                                                 'Is_Used_In_Mapping_Contract__c':''}"/>
+    <aura:attribute name="mappingObjectFieldDetail" type="Mapping_Object_Field__c" default=""/>
+    <aura:attribute name="mappingObjectFieldsList" type="List"/>    
+    <aura:attribute name="salesforceFieldOptions" type="List" default="[]"/>    
+    <aura:attribute name="dataTypePicklistValues" type="List" default="[]"/>    
+    <aura:attribute name="isDisabled" type="Boolean" default="false"/>
+    <aura:attribute name="isErrorFound" type="Boolean" default="false"/>
+    <aura:attribute name="loadingSpinner" type="boolean" default="false"/>
+    <aura:attribute name="errorText" type="String" default=""/>
+    <aura:attribute name="objectFieldError" type="String" default=""/> 
+    <aura:attribute name="DatastoreError" type="String" default=""/>     
+    
+    <aura:attribute name="isUsedInMappingContract" type="Boolean" default="false"/>    
+    <aura:attribute name="openSystemInformation" type="Boolean" default="true"/>    
+    <aura:attribute name="Systemicon" type="String" default="utility:chevronright"/>
+    <aura:registerEvent name="cancelEditEvent" type="c:cancelEvent" />     
+    <aura:registerEvent name="triggerSaveEvent" type="c:triggerSaveFieldsEvent" />     
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <section role="dialog" tabindex="-1" style="outline:none;" class="slds-modal slds-fade-in-open slds-modal_large slds-align_absolute-center"  aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+        <aura:if isTrue="{!v.loadingSpinner}">               
+            <lightning:spinner  alternativeText="Loading" size="large" variant="brand" />                
+        </aura:if>
+        <div class="slds-modal__container"  style="width:800px;">
+            <header class="slds-modal__header slds-modal__header_empty">
+                <lightning:buttonIcon iconName="utility:close"
+                                      size="large"
+                                      onclick="{! c.closeObjectFieldEditModal }"
+                                      alternativeText="close"
+                                      variant="bare-inverse"
+                                      class="slds-modal__close"/>                    
+            </header>                     
+            <div class="slds-modal__content"  width="1000px;" style="border-bottom-left-radius:0; border-bottom-right-radius:0;"> 
+                <br/>    
+                <br/>
+                <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate slds-align_absolute-center">Edit Object Field</h2> 
+                <br/>
+                <aura:if isTrue="{!v.isErrorFound}">
+                    <div  class=" slds-p-horizontal_medium ">
+                        <div class="genericNotification slds-p-horizontal_medium">
+                            <span class="genericError uiOutputText" data-aura-rendered-by="2518:0" data-aura-class="uiOutputText">Review the errors on this page.</span>
+                        </div>                          
+                        <div class="slds-p-horizontal_medium slds-p-vertical_small" style="color:rgb(194, 57, 52)">{!v.errorText}</div>                                                                                                
+                    </div>                                 
+                </aura:if>
+                <div class=" slds-p-horizontal_x-small">                        
+                    <h3 class="slds-section__title slds-theme--shade primaryPaletteBorder test-id__section-header-container slds-border_top" data-aura-rendered-by="5646:0">
+                        <span class="test-id__section-header-title section-header-title slds-p-horizontal--small slds-truncate" data-aura-rendered-by="5648:0">Field Information</span>
+                    </h3>                    
+                </div>
+                <div class="slds-p-around_large" id="modala">  
+                    
+                    <div class="slds-grid slds-gutters_small full cols-2 forcePageBlockSectionRow" data-aura-rendered-by="7049:0" data-aura-class="forcePageBlockSectionRow">                        
+                        
+                        <aura:if isTrue="{!v.mappingObjectDetail.Datastore__c == 'Salesforce'}">
+                            <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                    <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                        <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">Field Name</span>
+                                            <span class="required " data-aura-rendered-by="7018:0">*</span></label>
+                                        <div data-aura-rendered-by="8172:0" class="" data-aura-class="">                                                                                                                                
+                                            <lightning:select aura:id="sfobjectFieldName" disabled="{!v.isUsedInMappingContract}" class="{!v.objectFieldError+' label-hidden'}" value="{!v.mappingObjectFieldDetail.Name}">
+                                                <option value="">--None--</option>
+                                                <aura:iteration items="{!v.salesforceFieldOptions}" var="option" >
+                                                    <option text="{!option.label}" value="{!option.label}" selected="{!option.label == v.mappingObjectFieldDetail.Name}"/>
+                                                </aura:iteration>                                            
+                                            </lightning:select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                                    
+                            <aura:set attribute="else">
+                                <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7042:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                    <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7043:0">
+                                        <div class="slds-form-element__control" data-aura-rendered-by="7044:0" >
+                                            <div data-aura-rendered-by="8181:0" class="uiInput uiInputPhone uiInput--default uiInput--input" data-aura-class="uiInput uiInputPhone uiInput--default uiInput--input">
+                                                <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7033:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="required " data-aura-rendered-by="8177:0">*</span>
+                                                    <span class="" data-aura-rendered-by="8168:0">Field Name</span></label>                                                
+                                                <lightning:input type="text"  class="{!v.objectFieldError+' label-hidden'}" value="{!v.mappingObjectFieldDetail.Name}" disabled="{!v.isUsedInMappingContract}"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>                                        
+                            </aura:set>
+                        </aura:if>      
+                        
+                        <aura:if isTrue="{!v.mappingObjectDetail.Datastore__c != 'Salesforce'}">
+                            <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                    <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                        <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">Data Type</span>
+                                            <span class="required " data-aura-rendered-by="7018:0">*</span></label>
+                                        <div data-aura-rendered-by="8172:0" class="" data-aura-class="">                                                                                                                                
+                                            <lightning:select aura:id="dataStore" class="{!v.DatastoreError+' label-hidden'}"  disabled="{!v.isUsedInMappingContract}"
+                                                              variant="label-hidden" value="{!v.mappingObjectFieldDetail.Datatype__c}" 
+                                                              onchange="{!c.handleOnchangeDatastore}">                                            
+                                                <aura:iteration items="{!v.dataTypePicklistValues}" var="option">
+                                                    <option text="{!option.label}" value="{!option.value}" selected="{!option.value == v.mappingObjectFieldDetail.Datatype__c}"/>
+                                                </aura:iteration>                                            
+                                            </lightning:select>                        
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </aura:if>
+                        <aura:if isTrue="{!v.mappingObjectDetail.Datastore__c == 'Salesforce'}">
+                            
+                            <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                    <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                        <div class="slds-form-element__control" data-aura-rendered-by="7044:0" >
+                                        <div data-aura-rendered-by="8181:0" class="uiInput" >
+                                            <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7034:0" data-aura-rendered-by="8176:0" data-aura-class="uiLabel">                                                
+                                                <span class="" data-aura-rendered-by="8177:0">Description</span></label>
+                                            <lightning:textarea class="input" variant="label-hidden" value="{!v.mappingObjectFieldDetail.Description__c}" placeholder=""/>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>                                                                                    
+                        </aura:if>
+                        
+                    </div>
+                    <aura:if isTrue="{!v.mappingObjectDetail.Datastore__c != 'Salesforce'}">
+                        <div class="slds-grid slds-gutters_small full cols-2 forcePageBlockSectionRow" data-aura-rendered-by="7049:0" data-aura-class="forcePageBlockSectionRow">
+                            <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                    <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                        <div class="slds-form-element__control" data-aura-rendered-by="7044:0" >
+                                        <div data-aura-rendered-by="8181:0" class="uiInput" >
+                                            <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7034:0" data-aura-rendered-by="8176:0" data-aura-class="uiLabel">                                                
+                                                <span class="" data-aura-rendered-by="8177:0">Description</span></label>
+                                            <lightning:textarea class="input" variant="label-hidden" value="{!v.mappingObjectFieldDetail.Description__c}" placeholder=""/>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7042:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                <div class="slds-form-element">
+                                    <!--label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7035:0" data-aura-rendered-by="8176:0" data-aura-class="uiLabel">                                                
+                                            <span class="" data-aura-rendered-by="8177:0">Active</span></label-->
+                                    <div class="slds-form-element__control">
+                                        <!--span class="slds-checkbox slds-checkbox_standalone">                                        
+                                        <ui:inputCheckbox aura:id="checkbox"  value="{!v.isActive}"/>
+                                        <span class="slds-checkbox_faux"></span>
+                                    </span-->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </aura:if>
+                    
+                    <div style="height:1%;">
+                        <button class="accordion" onclick="{!c.onAccordianClick}">
+                            <lightning:icon iconName="{!v.Systemicon}" size="x-small"/>&nbsp;&nbsp;<b>System Information</b>
+                        </button>              
+                    </div>
+                    <aura:if isTrue="{!v.openSystemInformation}">
+                        <div class="slds-grid slds-gutters">
+                            <div class="slds-p-horizontal--small slds-size--1-of-2">
+                                <div class="slds-form-element slds-hint-parent slds-has-divider--bottom slds-p-around--x-small hasDiv">                                                
+                                    <label class="slds-form-element__label">Created By</label>                                                      
+                                    <div class="slds-form-element__control" style="min-height: 18px;">   
+                                        <a href="{!'/lightning/r/User/'+v.mappingObjectDetail.Owner.Id+'/view'}">{!v.mappingObjectDetail.Owner.Name}</a>
+                                        &nbsp;&nbsp;
+                                        <lightning:formattedDateTime value="{!v.mappingObjectDetail.CreatedDate}" year="numeric" month="numeric" day="numeric" hour="2-digit"
+                                                                     minute="2-digit"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-p-horizontal--small slds-size--1-of-2">
+                                <div class="slds-form-element slds-hint-parent slds-has-divider--bottom slds-p-around--x-small hasDiv">                                                
+                                    <label class="slds-form-element__label">Last Modified By</label>                                                      
+                                    <div class="slds-form-element__control" style="min-height: 18px;">                                  
+                                        <a href="{!'/lightning/r/User/'+v.mappingObjectDetail.Owner.Id+'/view'}">{!v.mappingObjectDetail.Owner.Name}</a>
+                                        &nbsp;&nbsp;
+                                        <lightning:formattedDateTime value="{!v.mappingObjectDetail.LastModifiedDate}" year="numeric" month="numeric" day="numeric" hour="2-digit"
+                                                                     minute="2-digit"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </aura:if>
+                    
+                    
+                </div>
+            </div>                     
+            <footer class="slds-modal__footer">
+                <button class="slds-button slds-button_neutral" onclick="{!c.closeObjectFieldEditModal}">Cancel</button>                  
+                <button class="slds-button slds-button_brand" onclick="{!c.OnClickSaveRecord}">Save</button>
+            </footer>            
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>    
+    
+</aura:component>

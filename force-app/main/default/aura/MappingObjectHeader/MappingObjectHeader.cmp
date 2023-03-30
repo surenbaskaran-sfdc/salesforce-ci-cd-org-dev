@@ -1,0 +1,87 @@
+<aura:component controller="SFConnectController" implements="lightning:actionOverride,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction,forceCommunity:availableForAllPageTypes,force:appHostable,lightning:isUrlAddressable,lightning:hasPageReference" access="global">
+    
+    <aura:attribute name="allObjectsList" type="List" default="[]"/>    
+    <aura:attribute name="dataStorePicklistValues" type="List" default="[]"/>    
+    <aura:attribute name="ownerDetails" type="String" default=""/>    
+    <aura:attribute name="mappingObjectDetail" type="Mapping_Object__c" />    
+    <aura:attribute name="editMappingObject" type="Boolean" default="false"/>
+    <aura:attribute name="deleteMappingObject" type="Boolean" default="false"/>
+	<aura:attribute name="validatingSpinner" type="boolean" default="false"/>
+    <aura:attribute name="loadingSpinner" type="boolean" default="false"/>
+    <aura:attribute name="isUsed" type="boolean" default="false"/>
+    
+    <aura:handler name = "cancelEditEvent" event="c:cancelEvent" action="{!c.handleCancelEditObject}" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <aura:if isTrue="{!v.validatingSpinner}">
+        <div class="deleteSpinner">
+            <lightning:spinner alternativeText="Validating" size="large" variant="inverse" />
+        </div>
+    </aura:if>
+    
+      <aura:if isTrue="{!v.loadingSpinner}">
+        <div class="slds-is-relative">
+            <br />
+            <br />
+            <br />
+            <br />
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+        <aura:set attribute="else">
+      
+    
+            
+            <div class="slds-page-header">
+                <div class="slds-grid">
+                    <div class="slds-media slds-no-space slds-grow">
+                        <div class="slds-media__figure">
+                            <lightning:icon iconName="standard:apex_plugin" size="medium" alternativeText="Object"/>
+                        </div>
+                        <div >
+                            <p class="slds-text slds-line-height_reset"> Object
+                            </p>                    
+                            <h1 class="slds-page-header__title slds-m-right_small slds-align-middle slds-truncate" title="Object Details"> {!v.mappingObjectDetail.Name}</h1>
+                        </div>
+                    </div>
+                    <div class="slds-button-group" role="group">                                
+                        <lightning:button label="Edit" onclick="{!c.handleEditRecord}"/>
+                        <lightning:button label="Delete" onclick="{!c.onClickDelete}"/>                                                
+                    </div>            
+                </div>        
+            </div>
+            
+        </aura:set>
+    </aura:if>
+    
+    <aura:if isTrue = "{!v.editMappingObject == true}">
+        <c:EditMappingObject aura:Id = "editMappingObject" callingFrom = "Header" mappingObjectRecordId = "{!v.recordId}"/>
+    </aura:if>
+    
+    
+    <aura:if isTrue = "{!v.deleteMappingObject == true}">
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close"
+                                          onclick="{! c.closeDeleteModal }"
+                                          alternativeText="close"
+                                          variant="bare-inverse"
+                                          class="slds-modal__close"/>
+                    <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Delete Object</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium " id="modal-content-id-1">
+                    <div class="slds-align_absolute-center"> <p>Are you sure you want to delete this Object? </p></div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning:button name="cancel" label="Cancel" onclick="{!c.closeDeleteModal}"/>
+                    <lightning:button name="delete" label="Delete" variant="brand" onclick="{!c.handleDeleteMappingObject}"/>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        
+    </aura:if>
+    
+    
+</aura:component>

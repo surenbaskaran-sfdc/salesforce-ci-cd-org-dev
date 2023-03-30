@@ -1,0 +1,44 @@
+.THIS .label-hidden > label {
+    display: none;
+}
+.THIS .popover {
+    position: absolute;
+    right: 85%; 
+    bottom: 56%;
+}
+.THIS .lookupField {
+    background-color: rgb(255, 255, 255);
+    border-color: rgb(194, 57, 52);
+    box-shadow: rgb(194, 57, 52) 0 0 0 1px inset;
+    background-clip: padding-box;
+}
+
+.THIS .accordion {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 8px;
+    width: 100%;    
+    border: none;
+    border-radius: 6px;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+    transition: 0.4s;
+}
+
+.THIS .active
+{
+    background-color: #ccc; 
+}
+.THIS .accordion > hover 
+{
+    background-color: #ccc; 
+}
+
+.THIS .panel {
+    padding: 0 18px;
+    display: none;
+    background-color: white;
+    overflow: hidden;
+}

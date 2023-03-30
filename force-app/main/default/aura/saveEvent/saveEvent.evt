@@ -1,0 +1,4 @@
+<aura:event type="APPLICATION" description="Save event for create object field component" >
+    <aura:attribute name="isSaveButtonClicked" type="String"/>   
+    <aura:attribute name="type" type="String"/>   
+</aura:event>

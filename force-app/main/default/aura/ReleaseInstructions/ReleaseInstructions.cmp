@@ -1,0 +1,65 @@
+<!--************************************************************************************************************************
+Company			  : HTC Global Services
+Developer		  : Nasrudeen Usman Baik
+Description               : contains release notes and post install instructions
+Related Aura Components   : Nil
+Related Apex Controllers  : Nil 
+Created Date		  : Nov 16, 2020
+Last Modified Date	  : Nov 20, 2020
+************************************************************************************************************************-->
+
+
+<aura:component implements="force:appHostable">
+    <br/>
+    <div class="slds-p-left_large slds-p-right_large ">
+        <div style="padding:0.5rem;background:#16325c">
+            <div class="slds-text-heading_large slds-text-color_inverse ">SF Connector App Winter'21 Release Instructions</div>
+        </div>
+    </div>
+    <br/>
+    <div class="slds-p-left_large slds-p-right_large ">
+        <div class="slds-box slds-theme_shade">
+            <div class="demo-only" style="padding:0.5rem;background:#16325c">
+                <div class="slds-text-heading_medium slds-text-color_inverse ">Release Notes</div>
+            </div>
+            <br/>
+            <ul class=" slds-p-left_large slds-p-right_large">
+                <li class="slds-text-heading_medium ">SF Connector - Integration Solution</li>
+                <br/>
+                <p class="slds-p-left_large slds-p-right_large">HTC Global’s EasyQuote is an easy to use quotation
+                    generation solution that is built on the Salesforce Lightning
+                    platform and based on the Pricing/Quoting Template. It has
+                    quotation templates built by configuring pricing formulas,
+                    pricing input, validation rules, and helps to determine the exact
+                    quotation price for the products. Your sales personnel can
+                    select the appropriate template to dynamically generate the
+                    quotation and derive the Net Operating Profit for the product.
+                    EasyQuote is integrated with approval process in Salesforce.</p>
+                <br/>
+                <li class="slds-text-heading_medium ">SF Connector - Functional Overview</li>
+                <br/>
+                <p class="slds-p-left_large slds-p-right_large ">EasyQuote supports creating several predefined
+                    Pricing/Quoting templates. The template created can be
+                    plugged inside the Opportunity or Pricebook and the quotation
+                    object can be turned into a dynamic quoting tool. This tool can
+                    be used to generate accurate quotes and sent for the
+                    executives’ approval before sending it to the client. This
+                    permits your sales personnel to concentrate more on
+                    opportunities instead of redefining the template layouts every
+                    time. The major functions of the Pricing/Quoting template
+                    include:
+                </p>
+                <br/>
+                <ul class="slds-list_dotted slds-p-left_medium">
+                    <li>Pricing Input</li>
+                    <li>Pricing Formula</li>
+                    <li>Pricing Condition</li>
+                    <li>Validation Rules</li>
+                    <li>Pricing Approval Rule</li>
+                </ul>
+            </ul> 
+            
+        </div>
+    </div>
+    <br/>
+</aura:component>

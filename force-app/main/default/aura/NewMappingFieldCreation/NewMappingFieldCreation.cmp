@@ -1,0 +1,139 @@
+<aura:component controller="SFConnectController"
+                implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes"
+                access="global">
+    
+    <aura:attribute name="mappingObjectDetails" type="Mapping_Object__c"/>
+    <aura:attribute name="deletedFildsList" type="List" default="[]" />
+    <aura:attribute name="mappingFieldsList" type="List" default="[]" />
+    <aura:attribute name="storedFieldsList" type="List" default="[]" />
+    <aura:attribute name="mappingFieldsMap" type="Map" default="" />    
+    <aura:attribute name="loadingSpinner" type="Boolean" default="false"/>
+    <aura:attribute name="recordId" type="String" default=""/>
+    <aura:attribute name="actionType" type="String" default=""/>
+    <aura:attribute name="usedMappingObjectFieldsList" type="List"/>  
+    <aura:attribute name="salesforceFieldOptions" type="List" default="" />
+    <aura:attribute name="isErrorFound" type="Boolean" default="false"/>
+    <aura:attribute name="errorMessage" type="String" default=""/>    
+    <aura:attribute name="dataTypeOptions" type="List" default="[]" />    
+    <aura:method name="startValidation" action="{!c.handleSaveValidation}"/>    	
+    
+    <aura:method name="refreshValue" action="{!c.handleRefreshValue}"/>    	
+    
+    <aura:registerEvent name="errorEvent" type="c:errorEvent" /> 
+    <aura:registerEvent name="triggerSaveEvent" type="c:triggerSaveFieldsEvent" />     
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>            
+    
+    <aura:if isTrue="{!v.loadingSpinner}">
+        <div class="slds-is-relative">
+            <br />
+            <br />
+            <br />
+            <br />
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+        <aura:set attribute="else">
+            <div aura:id='detailDiv' class="container-fluid slds-p-left_x-large slds-p-right_x-large">
+                <table class="slds-table slds-table_bordered slds-border_left slds-border_right slds-border_top slds-border_bottom">
+                    <thead>
+                        <tr class="slds-text-title_caps">
+                            <th class="slds-is-sortable " scope="col">
+                                <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                    <span class="slds-truncate" title=""></span>
+                                </div>
+                            </th>
+                            <th class="slds-is-sortable " scope="col">
+                                <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                    <span class="slds-truncate" title="Field Name">
+                                        <p class="required">*</p>Field Name
+                                    </span>
+                                </div>
+                            </th>
+                            <th class="slds-is-sortable " scope="col">
+                                <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                    <span class="slds-truncate" title="Description">Description</span>
+                                </div>
+                            </th>   
+                            <aura:if isTrue="{!v.mappingObjectDetails.Datastore__c !='Salesforce'}">
+                                <th class="slds-is-sortable " scope="col">
+                                    <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                        <span class="slds-truncate" title="Data Type">
+                                            <p class="required">*</p>Data Type
+                                        </span>
+                                    </div>
+                                </th> 
+                            </aura:if>
+                            <th class="slds-is-sortable " scope="col">
+                                <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                    <span class="slds-truncate" title="Delete">Delete</span>
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="slds-border_bottom">
+                        <aura:iteration items="{!v.mappingFieldsList}" var="tbl" indexVar="index">
+                            <tr>
+                                <td width="5%">
+                                    <div class="slds-align_absolute-center" title="{!index+1}">
+                                        {!index + 1}
+                                    </div>
+                                </td>                        
+                                <aura:if isTrue="{!v.mappingObjectDetails.Datastore__c !='Salesforce'}">
+                                    <td width="25%">
+                                        <div data-id="0" data-value="{!index}">
+                                            <lightning:input class="{!tbl.valueError + ' slds-align_absolute-center'}" disabled="{!tbl.Is_Used__c}" variant="label-hidden" name="{!index}"
+                                                             aura:id="nameValue" maxlength="50" value="{!tbl.Name}"
+                                                             title="{!tbl.Name}" onblur = "{!c.handleValueChange}"/>
+                                        </div>
+                                    </td>
+                                    <!-- 1  style="padding-bottom:10px;padding-top:10px;color:black;"  style="padding-bottom:20px;"  -->
+                                    <aura:set attribute="else">
+                                        <td width="25%">
+                                            <div  data-id="0" data-value="{!index}" onchange="{!c.handleValueChange}">
+                                                <lightning:select title="{!tbl.Name}"  disabled="{!tbl.Is_Used__c}" class="{!tbl.valueError + ' slds-align_absolute-center'}"
+                                                                  aura:id="Name" value="{!tbl.Name}">
+                                                    <aura:iteration items="{!v.salesforceFieldOptions}" var="item">
+                                                        <option value="{!item.value}" text="{!item.label}"></option>
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                            </div>
+                                        </td>
+                                    </aura:set>
+                                </aura:if>                                                
+                                <td  width="25%">
+                                    <div style="padding-bottom:5px;padding-top: 8px;">
+                                        <lightning:textarea class="" name="input1" disabled="false"
+                                                            variant="label-hidden" value="{!tbl.Description__c}" />
+                                    </div>
+                                </td>
+                                <aura:if isTrue="{!v.mappingObjectDetails.Datastore__c !='Salesforce'}">
+                                    <td width="25%">
+                                        <div style="padding-bottom:20px;" data-id="0" data-value="{!index}" onchange="{!c.handleDataTypeChange}">
+                                            <lightning:select title="{!tbl.Datatype__c}"  disabled="{!tbl.Is_Used__c}" class="{!tbl.valueTypeError}"
+                                                              aura:id="Datatype__c" value="{!tbl.Datatype__c}">
+                                                <aura:iteration items="{!v.dataTypeOptions}" var="item">
+                                                    <option value="{!item.value}" text="{!item.label}"></option>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </div>
+                                    </td>  
+                                </aura:if>
+                                <td width="10%">
+                                    <a onclick="{!c.handleDeleteField}" data-id="0"
+                                       data-value="{!index}" class="slds-align_absolute-center">
+                                        <lightning:buttonIcon aura:id="deleteIcon" iconName="utility:delete"
+                                                              disabled="false" title="Delete" variant="bare" />
+                                    </a>
+                                </td>
+                            </tr>
+                        </aura:iteration>
+                    </tbody>
+                </table>
+                <br></br>
+                <aura:if isTrue="{!v.actionType =='Add'}">
+                    <lightning:button title="Add Row" label="Add Row" onclick="{!c.handleAddRow}"/>
+                </aura:if>
+            </div>
+        </aura:set>
+    </aura:if>
+    
+</aura:component>

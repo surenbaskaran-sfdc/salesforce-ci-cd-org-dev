@@ -1,0 +1,76 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:hasRecordId"
+                access="global" controller="SFConnectController">
+    <!-- Sent from parent -->
+    <aura:attribute name="selectedFieldFromParent" type="String" description="already selected Field"/>
+    <aura:attribute name="dataTypeChangeRequest" type="boolean" default="true" description="group the datatypes."/>
+    <aura:attribute name="parentDataType" type="String" description="contains the parent component datatype"/>
+    <aura:attribute name="selectedObject" type="String" description="base object used in parent"/>
+    <!-- received from doInit-->
+    <aura:attribute name="lookupDetails" type="Object" Default="{}" description="contains the fields which has relationship"/>
+    <aura:attribute name="dataTypeDetails" type="Object" Default="{}" description="contains field Datatype details"/>
+    <aura:attribute name="relationshipDetails" type="Object" Default="{}" description="contains the relationship name of the fields"/>
+    <aura:attribute name="fieldLabelDetails" type="Object" Default="{}" description="contains the field labels"/>
+    <aura:attribute name="objectNames" type="Object" Default="{}" description="contains the object labels"/>
+    <aura:attribute name="FieldDetails" type="Object" Default="{}" description="contains all the picklist for object selected"/>
+    <!-- UI attributes-->
+    <aura:attribute name="isBroke" type="boolean" default="false" description="flag to show and hide the fieldSelector"/>
+    <aura:attribute name="breadcrumbCollection" type="List" description="contains all the breadcrum collections"/>
+    <aura:attribute name="fieldsCollection" type="List" description="contains all the current picklist values"/>
+    <aura:attribute name="selectedField" type="String" description="currently selected field"/>
+    <aura:attribute name="doInitFlag" type="boolean" default="false" description="flag to show the ui after do init"/>
+    <aura:attribute name="fieldSelectedFlag" type="boolean" default="false" description="flag to identify whether field is selected"/>
+    <aura:attribute name="storedMappingObjectFieldsList" type="List"/> 
+    <aura:attribute name="selectedFieldObject" type="String" description="object Name of currently selected field"/>
+    <aura:attribute name="selectedFieldLabel" type="String" description="field Label of currently selected field"/>
+    
+    <aura:method name="validateComponent" action="{!c.validateComponent}" access="public"/>
+    
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }" />
+    <div class="slds-p-around_medium slds-is-relative">
+        <div aura:id="uSpinnerContainer" class="userSpinner">
+            <lightning:spinner variant="brand" aura:id="uSpinner" />
+        </div>
+        <aura:if isTrue="{!v.doInitFlag}">
+            <div> 
+                <lightning:breadcrumbs>
+                    <aura:iteration items="{! v.breadcrumbCollection }" var="breadcrumb" indexVar="Index">
+                        <lightning:breadcrumb label="{!breadcrumb.breadcrumbName}"  name="{!Index}" onclick="{! c.handleNavigation }" />
+                    </aura:iteration>
+                </lightning:breadcrumbs>
+            </div>
+            <aura:if isTrue="{!not(v.fieldSelectedFlag)}">
+                <div style="height: 50px; Width: 250px;">
+                    <lightning:select value="{!v.selectedField}" onchange="{!c.handlePicklistChange}">
+                        <option value="">--None--</option>
+                        <aura:iteration items="{!v.fieldsCollection}" var="field">
+                            <option value="{!field.value}" selected="{!field.value==v.selectedField}">{!field.label}</option>
+                        </aura:iteration>
+                    </lightning:select>
+                </div> 
+                <aura:set attribute="else">                      
+                    <lightning:tile  label="{!v.selectedFieldLabel}" class=" slds-p-top_medium" >
+                        <aura:set attribute="media">
+                            <lightning:icon iconName="standard:folder" size="Large" />
+                        </aura:set>
+                        <dl class="slds-dl_horizontal">
+                            <dt>
+                                <p>Object :</p>
+                            </dt>
+                            <dd>
+                                <p class="slds-float_left" >{!v.selectedFieldObject}</p>
+                            </dd>
+                        </dl>
+                        <dl class="slds-dl_horizontal">
+                            <dt>
+                                <p>API Name :</p>
+                            </dt>
+                            <dd >
+                                <p class="slds-float_left">{!v.selectedField}</p>
+                            </dd>
+                        </dl>
+                    </lightning:tile>                      
+                </aura:set>
+            </aura:if>
+        </aura:if>
+    </div>
+</aura:component>

@@ -1,0 +1,21 @@
+.THIS .label-hidden > label {
+  display: none;
+}
+.THIS .slds-datepicker__month tr>td:first-child {
+    padding-left:0px !important;
+}
+.THIS .slds-datepicker__month tr>th {
+    padding-left:0px !important;
+    padding-left: 0px !important;
+}
+.THIS .slds-datepicker__month tr>td:last-child {
+    padding-right: 0px !important;
+    padding-left: 0px !important;
+}
+.THIS .slds-datepicker__month tr>th:last-child {
+    padding-right: 0px !important;
+    padding-left: 0px !important;
+}
+.THIS .slds-datepicker__month .slds-day{
+    margin:0px !important;
+}

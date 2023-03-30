@@ -1,0 +1,4 @@
+<aura:component controller="SFConnectController" implements="force:lightningQuickAction,force:hasSObjectName,force:hasRecordId">
+    <aura:attribute name="sObjectName" type="String" />
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/> 
+</aura:component>

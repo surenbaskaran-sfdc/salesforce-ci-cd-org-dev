@@ -1,0 +1,20 @@
+<aura:component controller="SFConnectController" implements="lightning:actionOverride,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes" access="global">
+    
+    <aura:attribute name="defaultData" type="String" default=""/>
+    <aura:attribute name="mappingRuleDetail" type="Mapping_Rule__c"/>
+    <aura:attribute name="mappingRuleIndex" type="Integer" />   
+    
+    <aura:attribute name="isErrorFound" type="Boolean" default="false"/>    
+    <aura:attribute name="errorText" type="String" />
+    <aura:attribute name="defaultDataError" type="String" default=""/>    
+    <aura:method name="validateTransformationValue" action="{!c.handleValidateTransformationValue}" description="Sample method with parameters"/>    
+    
+    <aura:registerEvent name="errorEvent" type="c:errorEvent" /> 
+    <aura:registerEvent name="triggerSaveEvent" type="c:triggerSaveFieldsEvent" />     
+    
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }"/>  
+    
+    <div class="slds-p-horizontal_large slds-align_absolute-center">
+        <lightning:input style="width:602px; height:100px;" aura:Id = "default" class="{!v.defaultDataError}" name="default value" label="Default Value" value="{!v.defaultData}" />
+    </div>    
+</aura:component>

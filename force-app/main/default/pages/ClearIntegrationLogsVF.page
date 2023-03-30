@@ -1,0 +1,20 @@
+<apex:page standardController="Integration_log__c" extensions="ClearIntegrationLogsController" docType="html-5.0" recordSetVar="IntegrationLog"
+           lightningStylesheets="true" applyHtmlTag="false" showHeader="false" action="{!clearLogs}">
+ <apex:includeLightning />
+
+ <div style="width:30%;height:100px;" id="ClearIntegrationLogsAura" />
+
+ <script>
+ 
+ $Lightning.use("c:ClearIntegrationLogsApp", function() {
+ $Lightning.createComponent("c:ClearIntegrationLogsAura",
+ {   
+     callingFrom:"VF Page"
+ },
+ "ClearIntegrationLogsAura",
+ function(cmp) {
+ console.log('Component created, do something cool here');
+ });
+ });
+ </script>
+</apex:page>

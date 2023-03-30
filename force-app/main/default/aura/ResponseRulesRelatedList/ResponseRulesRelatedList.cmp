@@ -1,0 +1,238 @@
+<aura:component controller="SFConnectController" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">     
+    
+    
+    <aura:attribute name="mappingContractDetail" type="Mapping_Contract__c"/>    
+    <aura:attribute name="columns" type="List"/>
+    <aura:attribute name="responseRulesList" type="List"/>        
+    <aura:attribute name="contractRuleDetail" type="Contract_Rule__c"/>
+    <aura:attribute name="responseRuleDetail" type="Response_Rule__c"/>
+    <aura:attribute name="mappingRuleIndex" type="Integer" default="0"/>     
+    
+    <aura:attribute name="isOpenTransformationValueModal" type="Boolean" default="false"/>
+    <aura:attribute name="loadingSpinner" type="Boolean" default="false"/>
+    <aura:attribute name="onDeleteClick" type="Boolean" default="false"/>      
+    <aura:attribute name="showfooter" type="Boolean" default="false"/>      
+    
+    <aura:attribute name="transformationType" type="String" />
+    
+    <aura:attribute name="targetFieldOptions" type="List" />
+    <aura:attribute name="sourceFieldOptions" type="List" />
+    <aura:attribute name="transformationTypeOptions" type="List" default = "[
+                                                                            {'label':'None' , 'value':''},                                                                            
+                                                                            {'label':'Direct' , 'Direct':''}]"/>
+    
+    <aura:attribute name="isErrorFound" type="Boolean" default="false"/>    
+    <aura:attribute name="errorText" type="String" />
+    <aura:handler name = "errorEvent" event="c:errorEvent" action="{!c.handleErrorEvent}" />
+    <aura:handler name = "triggerSaveEvent" event="c:triggerSaveFieldsEvent" action="{!c.handleSaveTransformationValue}" />    
+    <aura:handler name = "triggerCancelEvent" event="c:cancelEvent" action="{!c.closeTransformationTypeModals}" />    
+    <aura:registerEvent name="triggerInitEvent" type="c:triggerInitTabsEvent" /> 
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }"/>  
+    <aura:html tag="style">.toastMessage.forceActionsText{
+        white-space : pre-line !important;
+        }</aura:html>
+    <!--aura:if isTrue="{!v.loadingSpinner}">
+        <lightning:spinner class="slds-is-fixed" alternativeText="Loading" size="large" variant="brand" /> 
+    </aura:if-->                 
+    
+    <lightning:card  class="slds-theme_default hide-title cardStyle slds-border_right">         
+        <div class = "slds-border_right slds-border_top slds-border_bottom slds-border_left">            
+            
+            
+            
+            <aura:if isTrue="{!v.loadingSpinner}">
+                <div class="slds-is-relative">
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+                </div>
+                <aura:set attribute="else">
+                    
+                    
+            <header class="slds-page-header">
+                <lightning:icon iconName="custom:custom32"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;            
+                <b class="slds-text-heading_small">Response Rules ({!v.responseRulesList.length})</b>
+                <aura:if isTrue = "{!v.responseRulesList.length == 0}">
+                    <lightning:button class="slds-float_right" label="New" onclick="{!c.handleAddRow}"/>
+                </aura:if>
+            </header>    
+            
+            
+            
+                    <aura:if isTrue = "{!v.responseRulesList.length > 0}">                
+                        
+                        
+                        
+                        
+                        <!--  slds-table_bordered slds-border_left slds-border_right slds-border_top slds-border_bottom -->
+                        <table class="slds-table slds-table_bordered slds-border_left slds-border_right slds-border_top slds-border_bottom">
+                            <thead>
+                                <tr class="slds-text-title_caps">
+                                    <th class="slds-is-sortable " scope="col">
+                                        <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                            <span class="slds-truncate" title=""></span>
+                                        </div>
+                                    </th>
+                                    <!--th class="slds-is-sortable " scope="col">
+                                        <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                            <span class="slds-truncate" title="Transformation Type">
+                                                <p class="required">*</p>Transformation Type
+                                            </span>
+                                        </div>
+                                    </th-->
+                                    <th class="slds-is-sortable " scope="col">
+                                        <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                            <span class="slds-truncate" title="Transformation Value">
+                                                <p class="required">*</p>Source Field ( {!v.mappingContractDetail.Target_Datastore__c} ) </span>
+                                        </div>
+                                    </th>   
+                                    <!--th class="slds-is-sortable " scope="col">                                            
+                                    </th-->
+                                    <th class="slds-is-sortable " scope="col">
+                                        <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                            <span class="slds-truncate" title="Target Field">
+                                                <p class="required">*</p>Target Field ( {!v.mappingContractDetail.Source_Datastore__c} )</span>
+                                        </div>
+                                    </th> 
+                                    <!--th class="slds-is-sortable " scope="col">
+                                        <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                            <span class="slds-truncate" title="Mandatory">Mandatory</span>
+                                        </div>
+                                    </th--> 
+                                    <!--th class="slds-is-sortable " scope="col">
+                                        <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                            <span class="slds-truncate" title="Allowed for update">Allowed for update</span>
+                                        </div>
+                                    </th--> 
+                                    <th class="slds-is-sortable " scope="col">
+                                        <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                            <span class="slds-truncate" title="Delete">Delete</span>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="slds-border_bottom">
+                                <aura:iteration items="{!v.responseRulesList}" var="tbl" indexVar="index">
+                                    <tr>
+                                        <td width="5%">
+                                            <div class="slds-align_absolute-center" title="{!index+1}">
+                                                {!index + 1}
+                                            </div>
+                                        </td>                                                                                                                
+                                        <!--td width="18%">
+                                            <div data-id="0" data-value="{!index}" onchange="{!c.handleTransformationTypeChange}">
+                                                <lightning:select title="{!tbl.Name}" class="{!tbl.NameError+' slds-align_absolute-center'}" 
+                                                                  aura:id="transformationType" value="{!tbl.Name}">
+                                                    <aura:iteration items="{!v.transformationTypeOptions}" var="item">
+                                                        <option value="{!item.value}" text="{!item.label}"></option>                                                            
+                                                    </aura:iteration>                                                        
+                                                </lightning:select>
+                                            </div>
+                                        </td-->
+                                        <td width="17%">
+                                            <!--div style="padding-top: 10px;" data-id="0" data-value="{!index}">
+                                                <lightning:textarea class="{!tbl.TransformationValueError}" name="input1" disabled="true"
+                                                                    variant="label-hidden" value="{!tbl.Transformation_Value__c}" />
+                                            </div-->
+                                            
+                                            <div data-id="0" data-value="{!index}" onchange="{!c.handleTargetFieldChange}">
+                                                <lightning:select title="{!tbl.Source_Field__c}" class="{!tbl.SourceFieldError +' slds-align_absolute-center'}"
+                                                                  aura:id="sourceField" value="{!tbl.Source_Field__c}">
+                                                    <option text="--None--" value="" />
+                                                    <aura:iteration items="{!v.sourceFieldOptions}" var="item">
+                                                        <option value="{!item.value}" text="{!item.label}"></option>
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                            </div>
+                                        </td>
+                                        <!--td width="5%">
+                                            <a onclick="{!c.handleOpenTransformationModal}" data-id="0" data-value="{!index}"
+                                               class="slds-align_absolute-center">
+                                                <lightning:dynamicIcon type="waffle" class="slds-align_absolute-center" alternativeText="Set Value" />
+                                                <span class="slds-assistive-text"></span>
+                                            </a>
+                                        </td-->
+                                        <td width="18%">
+                                            <div data-id="0" data-value="{!index}" onchange="{!c.handleTargetFieldChange}">
+                                                <lightning:select title="{!tbl.Target_Field__c}" class="{!tbl.TargetFieldError +' slds-align_absolute-center'}"
+                                                                  aura:id="targetField" value="{!tbl.Target_Field__c}">
+                                                    <option text="--None--" value="" />
+                                                    <aura:iteration items="{!v.targetFieldOptions}" var="item">
+                                                        <option value="{!item.value}" text="{!item.label}"></option>
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                            </div>
+                                        </td>
+                                        <!--td width="5%">
+                                            <div data-id="0" data-value="{!index}" class="slds-align_absolute-center" onchange="{!c.handleOnCheckMandatory}">
+                                                <ui:inputCheckbox aura:id="mandatory" label="" value="{!tbl.Mandatory__c}" change="{!c.handleOnCheckMandatory}"/>
+                                            </div>
+                                        </td-->                                                                                     
+                                        <!--td width="5%">
+                                            <div data-id="0" data-value="{!index}" class="slds-align_absolute-center" onchange="{!c.handleOnCheckAllowedForUpdate}">
+                                                <ui:inputCheckbox aura:id="allowedForUpdate" label="" value="{!tbl.Allowed_for_update__c}" change="{!c.handleOnCheckAllowedForUpdate}"/>
+                                            </div>
+                                        </td-->
+                                        <td width="5%">
+                                            <a onclick="{!c.handleDeleteLabelPopup}" data-id="0"
+                                               data-value="{!index}" class="slds-align_absolute-center">
+                                                <lightning:buttonIcon aura:id="deleteIcon" iconName="utility:delete"
+                                                                      title="Delete" variant="bare" />
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>
+                        </table>
+                        <br></br>
+                        <div aura:id='detailDiv' class="container-fluid slds-p-left_x-large slds-p-right_x-large">
+                            <lightning:button title="Add Row" label="Add Row" onclick="{!c.handleAddRow}"/>
+                        </div>
+                        <br></br>                        
+                        
+                        <aura:set attribute="else">
+                            
+                            <div class="slds-align_absolute-center slds-text-heading_small" style="height:5rem"> No Response Rules Found.</div>
+                        </aura:set> 
+                    </aura:if>
+                </aura:set>
+            </aura:if>
+        </div>
+        <aura:set attribute="footer">
+            <aura:if isTrue="{!v.showfooter}">                 
+                <div class="slds-docked-form-footer">
+                    <button type="button" class="slds-button slds-button_neutral" onclick="{!c.onclickCancelMappingRules}">Cancel</button>
+                    <button type="button" class="slds-button slds-button_brand" onclick="{!c.onclickSaveMappingRules}">Save</button>
+                </div>
+            </aura:if>
+        </aura:set> 
+    </lightning:card>                   
+    
+    
+    
+    <aura:if isTrue = "{!v.onDeleteClick == true}">
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close"
+                                          onclick="{! c.closeDeleteModal }"
+                                          alternativeText="close"
+                                          variant="bare-inverse"
+                                          class="slds-modal__close"/>
+                    <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Delete Response Rule</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium " id="modal-content-id-1">
+                    <div class="slds-align_absolute-center"> <p>Are you sure you want to delete this Response Rule? </p></div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning:button name="cancel" label="Cancel" onclick="{!c.closeDeleteModal}"/>
+                    <lightning:button name="delete" label="Delete" variant="brand" onclick="{!c.handleDeleteMappingRule}"/>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        
+    </aura:if>
+</aura:component>

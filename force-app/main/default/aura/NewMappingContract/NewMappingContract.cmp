@@ -1,0 +1,299 @@
+<aura:component controller="SFConnectController" implements="lightning:actionOverride,lightning:hasPageReference,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction,forceCommunity:availableForAllPageTypes,force:appHostable,lightning:isUrlAddressable,lightning:hasPageReference" access="global">	
+    
+    <aura:attribute name="isNewContract" type="Boolean"/>
+    <aura:attribute name="pageReference" type="Object" />
+    <aura:handler name="change" value="{!v.pageReference}" action="{!c.handlePageChange}" />
+    <aura:attribute name="mappingContractDetail" type="Mapping_Contract__c" default="{'sobjectType': 'Mapping_Contract__c',
+                                                                                     'Name': '',                                                
+                                                                                     'Active__c': true,
+                                                                                     'Description__c': '',                                                
+                                                                                     'End_point_URL__c': '',
+                                                                                     'Source_Datastore__c': '',                                                
+                                                                                     'Target_Datastore__c': '',
+                                                                                     'Named_Credential__c': ''
+                                                                                     }"/>
+    
+    <aura:attribute name="callingFrom" type="String" default=""/>
+    <aura:attribute name="callType" type="String" default=""/><!-- Due to changing undefined while click escape button -->
+    
+    <aura:attribute name="allMappingContractDetailsList" type="List" default="[]"/>    
+    <aura:attribute name="ownerDetails" type="sObject" default=""/>   
+    
+    <aura:attribute name="mappingContractNameError" type="String" default=""/>
+    <aura:attribute name="mappingContractSourceDatastoreError" type="String" default=""/>
+    <aura:attribute name="mappingContractTargetDatastoreError" type="String" default=""/>
+    <aura:attribute name="mappingContractNamedCredentialError" type="String" default=""/>
+    <aura:attribute name="mappingContractEndPointURLError" type="String" default=""/>
+    <aura:attribute name="jobTypeError" type="String" default=""/>
+    <aura:attribute name="sourceObjectError" type="String" default=""/>
+    <aura:attribute name="namedCredentialError" type="String" default=""/>
+    
+    <aura:attribute name="targetDatastoreList" type="List" default="[]"/>
+    <aura:attribute name="sourceDatastoreList" type="List" default="[]"/>
+    <aura:attribute name="namedCredentialList" type="List" default="[]"/>
+    <aura:attribute name="sourceObjectOptions" type="List" default="[]"/>
+    
+    <aura:attribute name="sourceObjectOptionsMap" type="Map"/>
+    
+    <aura:attribute name="isAvailableContractRules" type="Boolean" default="false"/>
+    <aura:attribute name="isDisabled" type="Boolean" default="false"/>
+    <aura:attribute name="isErrorFound" type="Boolean" default="false"/>
+    <aura:attribute name="loadingSpinner" type="boolean" default="false"/>
+    <aura:attribute name="errorText" type="String" default=""/>
+    <aura:attribute name="showEditIcon" type="boolean" default="true"/>
+    <aura:attribute name="isEditPage" type="boolean" default="false"/>
+    
+    <aura:attribute name="openSystemInformation" type="Boolean" default="true"/>    
+    <aura:attribute name="Systemicon" type="String" default="utility:chevronright"/>  
+    
+    <aura:registerEvent name="cancelEditEvent" type="c:cancelEvent" />     
+    <aura:registerEvent name="triggerSaveCRuleEvent" type="c:triggerSaveFieldsEvent" /> 
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <div class="demo-only" id="modalId" onkeyup="{!c.onPressKey}">
+        <section role="dialog" tabindex="-1" style="outline:none;" class="slds-modal slds-fade-in-open slds-modal_large slds-align_absolute-center"  aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+            
+            
+            <div class="slds-modal__container"  style="width:800px;">
+                <header class="slds-modal__header slds-modal__header_empty">
+                    <lightning:buttonIcon iconName="utility:close" size="large" onclick="{! c.closeRuleCreateModal }"
+                                          alternativeText="close" variant="bare-inverse" class="slds-modal__close"/>                    
+                </header>                     
+                <div class="slds-modal__content"  width="1000px;" style="border-bottom-left-radius:0; border-bottom-right-radius:0;"> 
+                    <br/>    
+                    <br/>
+                    <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate slds-align_absolute-center">New Mapping Contract</h2> 
+                    <br/>
+                    <aura:if isTrue="{!v.isErrorFound}">
+                        <div  class=" slds-p-horizontal_medium ">
+                            <div class="genericNotification slds-p-horizontal_medium">
+                                <span class="genericError uiOutputText" data-aura-rendered-by="2518:0" data-aura-class="uiOutputText">Review the errors on this page.</span>
+                            </div>                          
+                            <div class="toastMessage slds-p-horizontal_medium slds-p-vertical_small" style="color:rgb(194, 57, 52)">{!v.errorText}</div>                                                                                                
+                        </div>                                 
+                    </aura:if>
+                    <div class=" slds-p-horizontal_x-small">                        
+                        <h3 class="slds-section__title slds-theme--shade primaryPaletteBorder test-id__section-header-container slds-border_top" data-aura-rendered-by="5646:0">
+                            <span class="test-id__section-header-title section-header-title slds-p-horizontal--small slds-truncate" data-aura-rendered-by="5648:0">Mapping Contract Information</span>
+                        </h3>                    
+                    </div>
+                    <div class="slds-p-around_large" id="modala">  
+                        <aura:if isTrue="{!v.loadingSpinner}">               
+                            <div class="slds-is-relative">
+                                <br />
+                                <br />
+                                <br />
+                                <br />
+                                <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+                            </div>
+                            
+                            <aura:set attribute="else">
+                                <div class="slds-grid slds-gutters_small full cols-2 forcePageBlockSectionRow" data-aura-rendered-by="7049:0" data-aura-class="forcePageBlockSectionRow">                                                
+                                    
+                                    <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                        <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                            <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                                <label class="label inputLabel uiLabel-left form-element__label uiLabel" 
+                                                       for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel">
+                                                    <span class="" data-aura-rendered-by="8168:0">Mapping Contract Name</span>
+                                                    <span class="required " data-aura-rendered-by="7018:0">*</span></label>
+                                                <div data-aura-rendered-by="8172:0" class="" data-aura-class="">                                        
+                                                    <lightning:input aura:id = "mappingContractName" class="{!v.mappingContractNameError + ' label-hidden'}" value="{!v.mappingContractDetail.Name}" maxlength="255"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                        <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                            <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                                <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">Active</span></label>
+                                                <div data-aura-rendered-by="8172:0" class="" data-aura-class="">                                                                                                                                
+                                                    <ui:inputCheckbox aura:id="checkbox" value="{!v.mappingContractDetail.Active__c}"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                                <div class="slds-grid slds-gutters_small full cols-2 forcePageBlockSectionRow" data-aura-rendered-by="7049:0" data-aura-class="forcePageBlockSectionRow">
+                                    
+                                    <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                        <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                            <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                                <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">Source Datastore</span>
+                                                    <span class="required " data-aura-rendered-by="7018:0">*</span></label>
+                                                <div data-aura-rendered-by="8172:0" class="" data-aura-class="">                                                                                                                                
+                                                    
+                                                    <lightning:select aura:id="sourceAndTargetObjectId" 
+                                                                      name = "Source Object" 
+                                                                      disabled = "{!v.isAvailableContractRules}" 
+                                                                      class="{!v.mappingContractSourceDatastoreError + ' label-hidden'}" 
+                                                                      value="{!v.mappingContractDetail.Source_Datastore__c}"  onchange="{!c.onChangeSourceDatastore}">
+                                                        <option value="">--None--</option>
+                                                        <aura:iteration items="{!v.sourceDatastoreList}" var="item">
+                                                            <option text="{!item.label}" value="{!item.label}" selected="{!item.label == v.mappingContractDetail.Source_Datastore__c}"/>
+                                                        </aura:iteration>                                          
+                                                    </lightning:select>                                                     
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                        <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                            <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                                <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">Target Datastore</span>
+                                                    <span class="required " data-aura-rendered-by="7018:0">*</span></label>
+                                                <div data-aura-rendered-by="8172:0" class="" data-aura-class="">
+                                                    
+                                                    <lightning:select aura:id="sourceAndTargetObjectId" 
+                                                                      name = "Source Object" 
+                                                                      disabled = "{!v.isAvailableContractRules}" 
+                                                                      class="{!v.mappingContractTargetDatastoreError + ' label-hidden'}" 
+                                                                      value="{!v.mappingContractDetail.Target_Datastore__c}"  onchange="{!c.onChangeTargetDatastore}">
+                                                        <option value="">--None--</option>
+                                                        <aura:iteration items="{!v.targetDatastoreList}" var="item">
+                                                            <option text="{!item.label}" value="{!item.label}" selected="{!item.label == v.mappingContractDetail.Target_Datastore__c}"/>
+                                                        </aura:iteration>                                          
+                                                    </lightning:select>                                             
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Job Type and Source Object -->
+                                
+                                
+                                <div class="slds-grid slds-gutters_small full cols-2 forcePageBlockSectionRow" data-aura-rendered-by="7049:0" data-aura-class="forcePageBlockSectionRow">
+                                    <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                        <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                            <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                                <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">Job Type</span>
+                                                    <span class="required " data-aura-rendered-by="7018:0">*</span></label>
+                                                <div data-aura-rendered-by="8172:0" class="" data-aura-class="">                                                                                                                                
+                                                    
+                                                    <lightning:select aura:id="jobType" 
+                                                                      name = "job Type" 
+                                                                      disabled = "{!v.isAvailableContractRules}" 
+                                                                      class="{!v.jobTypeError + ' label-hidden'}" 
+                                                                      value="{!v.mappingContractDetail.Job_Type__c}">
+                                                        <option value="">--None--</option>
+                                                        <option text="Realtime Sync" value="Realtime Sync" selected="{ 'Realtime Sync' == !v.mappingContractDetail.Job_Type__c}"/>
+                                                        <option text="Schedule Job" value="Jobs" selected="{'Jobs' == !v.mappingContractDetail.Job_Type__c}"/>
+                                                    </lightning:select>                                                     
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                        <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                            <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                                <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">End Point URL</span>
+                                                    <lightning:helptext class="popover" iconName="utility:info" content="Target system End Point URL." />
+                                                    <span class="required " data-aura-rendered-by="7018:0">*</span></label>
+                                                <div data-aura-rendered-by="8172:0" class="" data-aura-class="">
+                                                    <lightning:input aura:id="urlField" type="url" class="{!v.mappingContractEndPointURLError + ' label-hidden'}" value="{!v.mappingContractDetail.End_point_URL__c}" maxlength="255"/>                                                
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                                
+                                
+                                
+                                <!-- end -->
+                                
+                                <div class="slds-grid slds-gutters_small full cols-2 forcePageBlockSectionRow" data-aura-rendered-by="7049:0" data-aura-class="forcePageBlockSectionRow">
+                                    <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                        <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                            <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                                <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">Description</span></label>
+                                                <div data-aura-rendered-by="8172:0" class="" data-aura-class="">                                                                                                                                
+                                                    <lightning:textarea  class="label-hidden" value="{!v.mappingContractDetail.Description__c}" maxlength="255"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                        <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                            <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                                
+                                                <aura:if isTrue="{!v.mappingContractDetail.Job_Type__c == 'Realtime Sync'}">
+                                                    <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">Source Object</span>
+                                                        <span class="required " data-aura-rendered-by="7018:0">*</span></label>
+                                                    <div data-aura-rendered-by="8172:0" class="" data-aura-class="">
+                                                        
+                                                        <lightning:select aura:id="sourceObject" 
+                                                                          name = "Contract Source Object" 
+                                                                          disabled = "{!or(v.isAvailableContractRules, empty(v.mappingContractDetail.Source_Datastore__c))}" 
+                                                                          class="{!v.sourceObjectError + ' label-hidden'}" 
+                                                                          value="{!v.mappingContractDetail.Source_Object__c}" >
+                                                            <option value="">--None--</option>
+                                                            <aura:iteration items="{!v.sourceObjectOptions}" var="item">
+                                                                <option text="{!item}" value="{!item}" selected="{!item == v.mappingContractDetail.Source_Object__c}"/>
+                                                            </aura:iteration>                                          
+                                                        </lightning:select>                                             
+                                                    </div>
+                                                </aura:if>
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                
+                                <aura:if isTrue="{!v.mappingContractDetail.Source_Datastore__c=='Salesforce'}">
+                                <div class="slds-grid slds-gutters_small full cols-2 forcePageBlockSectionRow" data-aura-rendered-by="7049:0" data-aura-class="forcePageBlockSectionRow">
+                                    
+                                    <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                        <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                            <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                                <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">Named Credential</span>
+                                                   <span class="required " data-aura-rendered-by="7018:0">*</span> </label>
+                                                <div data-aura-rendered-by="8172:0" class="" data-aura-class="">                                                                                                                                
+                                                    
+                                                    <lightning:select aura:id="namedCredentialId" 
+                                                                      name = "Named Credential" 
+                                                                      class="{!v.namedCredentialError + ' label-hidden'}" 
+                                                                      value="{!v.mappingContractDetail.Named_Credential__c}">
+                                                        <option value="">--None--</option>
+                                                        <aura:iteration items="{!v.namedCredentialList}" var="item">
+                                                            <option text="{!item.label}" value="{!item.value}" selected="{!item.value == v.mappingContractDetail.Named_Credential__c}"/>
+                                                        </aura:iteration>                                          
+                                                    </lightning:select>                                                     
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                        <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                            <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                    </aura:if>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </div>                     
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick="{!c.closeRuleCreateModal}">Cancel</button>                  
+                    <button class="slds-button slds-button_brand" onclick="{!c.handleSaveMappingContract}">Save</button>
+                </footer>            
+            </div>
+            
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div> 
+    </div>
+</aura:component>

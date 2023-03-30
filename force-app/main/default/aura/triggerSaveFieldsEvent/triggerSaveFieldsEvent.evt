@@ -1,0 +1,4 @@
+<aura:event type="COMPONENT" description="Error event for create object field component" >
+    <aura:attribute name="isSaveTriggered" type="Boolean"/>        
+    <aura:attribute name="type" type="String"/>   
+</aura:event>

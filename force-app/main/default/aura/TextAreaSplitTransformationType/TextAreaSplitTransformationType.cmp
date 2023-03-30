@@ -1,0 +1,170 @@
+<aura:component controller="SFConnectController" implements="lightning:actionOverride,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes" access="global">
+    
+    <aura:attribute name="textAreaSplitFieldData" type="String" />
+    <aura:attribute name="textAreaSplitFieldDataError" type="String" />
+    <aura:attribute name="textAreaSplitFieldOptions" type="List" />   
+    
+    <aura:attribute name="textAreaSplitList" type="List" />    
+    <aura:attribute name="endPositionErrorMessage" type="String" default="Please provide valid value" />
+    <aura:attribute name="startPositionErrorMessage" type="String" default="Please provide valid value" />
+    <aura:attribute name="lineNumberErrorMessage" type="String" default="Please provide valid value" />
+    
+    <aura:attribute name="DisplayValue" type="String" default="" />
+    <aura:attribute name="DevValue" type="String" default="" />
+    
+    <aura:attribute name="mappingContractDetail" type="Mapping_Contract__c"/>
+    <aura:attribute name="contractRuleDetail" type="Contract_Rule__c"/>
+    <aura:attribute name="mappingRuleDetail" type="Mapping_Rule__c"/>
+    <aura:attribute name="mappingRuleIndex" type="Integer" />       
+    <aura:attribute name="loadingSpinner" type="Boolean" default="false"/>
+    <aura:attribute name="isErrorFound" type="Boolean" default="false"/>    
+    <aura:attribute name="errorText" type="String" />
+    <aura:attribute name="directDataError" type="String" default=""/>    
+    <aura:method name="validateTransformationValue" action="{!c.handleValidateTransformationValue}" description="Sample method with parameters"/>    
+    
+    <aura:registerEvent name="errorEvent" type="c:errorEvent" /> 
+    <aura:registerEvent name="triggerSaveEvent" type="c:triggerSaveFieldsEvent" />         
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <lightning:overlayLibrary aura:id="overlayLib1"/>    
+    
+    <aura:if isTrue="{!v.loadingSpinner}">
+        <div class="slds-is-relative">
+            <br />
+            <br />
+            <br />
+            <br />
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+        <aura:set attribute="else">  
+            
+            <div class="slds-page-header" title="General Information">
+                <b>General Information</b>
+            </div>
+            <br></br>
+            <br></br>                                                        
+            <div class="slds-p-left_x-large">
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_3-of-12">
+                        <span><label><p class="required">*</p>Field Name</label></span>
+                    </div>
+                    <div class="slds-col slds-size_3-of-12">
+                        <span><div style="width:200px;">
+                            <lightning:select title="Field Name" label = "Field Name" class="{!v.textAreaSplitFieldDataError + ' label-hidden'}"
+                                              aura:id="textAreaSplit" value="{!v.textAreaSplitFieldData}" onchange="{!c.handleOnchangeFieldName}">
+                                <option text="--None--" value="" />
+                                <aura:iteration items="{!v.textAreaSplitFieldOptions}" var="item">
+                                    <option value="{!item.value}" text="{!item.label}"></option>
+                                </aura:iteration>
+                            </lightning:select>
+                            </div>
+                        </span>
+                    </div>
+                    <div class="slds-col slds-size_1-of-12"></div>
+                    <div class="slds-col slds-size_2-of-12"><span></span></div>
+                    <div class="slds-col slds-size_3-of-12"><span></span></div>                                        
+                </div>
+            </div>            
+            
+            
+            <br></br>
+            <br></br>
+            <!--  slds-table_bordered slds-border_left slds-border_right slds-border_top slds-border_bottom -->                    
+            <table class="slds-table slds-table_bordered slds-table_cell-buffer  slds-border_top  slds-border_right slds-border_bottom slds-border_left"> 
+                <thead>
+                    <tr class="slds-text-title_caps">
+                        <th class="slds-is-sortable " scope="col">
+                            <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                <span class="slds-truncate" title=""></span>
+                            </div>
+                        </th>
+                        <th class="slds-is-sortable " scope="col">
+                            <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                <span class="slds-truncate" title="Line NO">
+                                    <p class="required">*</p>Line NO
+                                </span>
+                            </div>
+                        </th>
+                        <th class="slds-is-sortable " scope="col">
+                            <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                <span class="slds-truncate" title="Pre-Value">Pre-Value
+                                </span>
+                            </div>
+                        </th>
+                        <th class="slds-is-sortable " scope="col">
+                            <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                <span class="slds-truncate" title="Start-Pos">
+                                    <p class="required">*</p>Start-Pos
+                                </span>
+                            </div>
+                        </th>
+                        <th class="slds-is-sortable " scope="col">
+                            <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                <span class="slds-truncate" title="End-Pos">
+                                    <p class="required">*</p>End-Pos
+                                </span>
+                            </div>
+                        </th>
+                        <th class="slds-is-sortable " scope="col">
+                            <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                <span class="slds-truncate" title="Post-Value">Post-Value
+                                </span>
+                            </div>
+                        </th>                                    
+                        <th class="slds-is-sortable " scope="col">
+                            <div class="slds-th__action slds-text-link-reset slds-align_absolute-center">
+                                <span class="slds-truncate" title="Delete">Delete</span>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="slds-border_bottom">
+                    <aura:iteration items="{!v.textAreaSplitList}" var="tbl" indexVar="index">
+                        <tr>
+                            <td width="5%">
+                                <div class="slds-align_absolute-center" title="{!index+1}">
+                                    {!index + 1}
+                                </div>
+                            </td>                                                                                                                
+                            <td width="18%">
+                                <lightning:input  class="{!tbl.linenoError +' slds-align_absolute-center'}" 
+                                                 variant="label-hidden"  type="Number"  
+                                                 value="{!tbl.lineno}" />  
+                            </td>
+                            <td width="18%">
+                                <lightning:input  class="slds-align_absolute-center" variant="label-hidden"  type="text"  value="{!tbl.preValue}" />  
+                            </td>
+                            <td width="18%">
+                                <lightning:input  class="{!tbl.startPositionError +' slds-align_absolute-center'}" 
+                                                 variant="label-hidden"  type="Number"
+                                                 value="{!tbl.startPosition}" />  
+                            </td>
+                            <td width="18%">
+                                <lightning:input  class="{!tbl.endPositionError +' slds-align_absolute-center'}" 
+                                                 variant="label-hidden"  type="Number" 
+                                                 value="{!tbl.endPosition}" />  
+                            </td>
+                            <td width="18%">
+                                <lightning:input  class="slds-align_absolute-center" variant="label-hidden"  type="text"  value="{!tbl.postValue}" />  
+                            </td>                                        
+                            <td width="5%">
+                                <a onclick="{!c.handleDeleteRow}" data-id="0"
+                                   data-value="{!index}" class="slds-align_absolute-center">
+                                    <lightning:buttonIcon aura:id="deleteIcon" iconName="utility:delete"
+                                                          title="Delete" variant="bare" />
+                                </a>
+                            </td>
+                        </tr>
+                    </aura:iteration>
+                </tbody>
+            </table>
+            <br></br>
+            <div aura:id='detailDiv' class="container-fluid slds-p-left_x-large slds-p-right_x-large">
+                <lightning:button title="Add Row" label="Add Row" onclick="{!c.handleAddTextAreaSplitValue}"/>
+            </div>                        
+            <br></br>                        
+            
+        </aura:set>
+    </aura:if>
+    
+</aura:component>

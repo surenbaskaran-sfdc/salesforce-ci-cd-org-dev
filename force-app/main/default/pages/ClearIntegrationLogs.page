@@ -1,0 +1,119 @@
+<apex:page standardController="Integration_log__c" extensions="ClearIntegrationLogsController" docType="html-5.0" recordSetVar="IntegrationLog"
+           lightningStylesheets="true" applyHtmlTag="false" showHeader="false" action="{!clearLogs}">
+    
+    <apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
+    window.onkeydown = function( event ) {
+        if ( event.keyCode == 27 ) {
+            alert( 'escape pressed' );
+        }
+    };
+    </script>
+    <apex:slds />
+    <script>
+    function showToast() {
+        sforce.one.showToast({
+            "title": "Success!",
+            "message": "Success",
+            "type": "success"
+        });
+    }
+    </script>
+    <!--script>
+function closeModal() {
+$('#myModal').modal('hide');
+},
+
+
+</script -->
+    
+    <apex:form id="formId">
+        
+        <div id="myModal" class="modal slds-scope" >
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-small" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Clear Logs</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_small" id="modal-content-id-1">
+                        <apex:pageMessages id="showmsg"></apex:pageMessages>
+                        <apex:actionStatus id="pageStatus">
+                            <apex:facet name="start">
+                                <apex:outputPanel >
+                                    <img src="/img/loading32.gif" width="25" height="25" />
+                                    <!--div class="demo-only demo-only demo-only_viewport" style="height:6rem">
+                                    <div role="status" class="slds-spinner slds-spinner_medium">
+                                    <div class="slds-spinner__dot-a"></div>
+                                    <div class="slds-spinner__dot-b"></div>
+                                    </div>
+                                    </div -->
+                                    <apex:outputLabel value="Loading..."/>
+                                </apex:outputPanel>            
+                            </apex:facet>
+                        </apex:actionStatus>
+                        <Br/>
+                        <apex:outputPanel id="panelId" rendered="{!renderDateRangePanel}">
+                            <div class="slds-grid slds-gutters_small full cols-2 forcePageBlockSectionRow" data-aura-rendered-by="7049:0" data-aura-class="forcePageBlockSectionRow">                                                
+                                <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                    <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                        <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                            <span class="required " data-aura-rendered-by="7018:0">*</span>
+                                            <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">Start Date</span>
+                                            </label>
+                                            <div data-aura-rendered-by="8172:0" class="" data-aura-class="">
+                                                <apex:input type="date" label="Start Date" title="Start Date" rendered="{!isFormRendered}" required="{!isCancelled}" value="{!getStartDate}" id="inputBox"  />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="slds-grid slds-col slds-is-editing slds-has-flexi-truncate full forcePageBlockItem forcePageBlockItemEdit" role="listitem" style="" data-aura-rendered-by="7026:0" data-aura-class="forcePageBlockItem forcePageBlockItemEdit">
+                                    <div class="slds-form-element slds-hint-parent" data-aura-rendered-by="7027:0">
+                                        <div class="slds-form-element__control" data-aura-rendered-by="7028:0">
+                                            <span class="required " data-aura-rendered-by="7018:0">*</span>
+                                            <label class="label inputLabel uiLabel-left form-element__label uiLabel" for="7017:0" data-aura-rendered-by="8167:0" data-aura-class="uiLabel"><span class="" data-aura-rendered-by="8168:0">End Date</span>
+                                            </label>
+                                            <div data-aura-rendered-by="8172:0" class="" data-aura-class="">
+                                                <apex:input type="date" label="End Date" title="End Date" required="{!isCancelled}" rendered="{!isFormRendered}" value="{!getEndDate}" id="inputBoxEnd" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div> 
+                            </div>
+                        </apex:outputPanel> 
+                        	
+                        
+                        <apex:outputPanel id="confirmationPanelId" rendered="{!renderConfirmPanel}">
+                        	<center><B><p>
+                                Total records selected : {!count}
+                            </p><p>
+                            	Are you sure you want to delete these logs ?
+                            </p></B></center>
+                        </apex:outputPanel>
+                        <apex:outputPanel id="confirmationPanelIdSingle" rendered="{!renderConfirmPanelSingle}">
+                        <center><B><p>
+                                Total records selected : {!count}
+                            </p><p>
+                            	Are you sure you want to delete this log ?
+                            </p></B></center>
+                        </apex:outputPanel>
+                        
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <apex:commandButton action="{!navToListView}" title="Cancel" value="Cancel" style="color:#1C6EA4;" reRender="formId"></apex:commandButton>
+                        <apex:commandButton title="Delete" value="Delete" action="{!logsMassDelete}" style="color:white;background-color:#1C6EA4;" status="pageStatus" reRender="formId,panelId,confirmationPanelIdSingle,confirmationPanelId" rendered="{!if(renderDateRangePanel == true && renderDeleteMore == false , true , false)}"></apex:commandButton>
+                        <apex:commandButton title="Confirm" value="Confirm" action="{!deleteConfirmation}" style="color:white;background-color:#1C6EA4;" status="pageStatus" reRender="formId,panelId,inputBox,inputBoxEnd" rendered="{!if(renderConfirmPanel == true || renderConfirmPanelSingle == true, true,false)}"></apex:commandButton>
+                    	<apex:commandButton title="Delete More" value="Delete More" action="{!logsMassDelete}" style="color:white;background-color:#1C6EA4;" status="pageStatus" reRender="formId,panelId,confirmationPanelIdSingle,confirmationPanelId" rendered="{!renderDeleteMore}"></apex:commandButton>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </div>
+    </apex:form>
+    
+    <style type="text/css">
+        .span{
+        color:red;
+        }
+    </style>
+</apex:page>

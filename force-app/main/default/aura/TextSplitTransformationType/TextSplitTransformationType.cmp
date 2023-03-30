@@ -1,0 +1,116 @@
+<aura:component controller="SFConnectController" implements="lightning:actionOverride,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes" access="global">
+    <aura:attribute name="tdata" type="String" />
+    <aura:attribute name="pre" type="String" default="" />
+    <aura:attribute name="start" type="Integer" />
+    <aura:attribute name="srcobjname" type="String" />
+    
+    
+    <aura:attribute name="endPositionErrorMessage" type="String" default="Provide a valid position value (Greater than or equal to 0)" />
+    <aura:attribute name="startPositionErrorMessage" type="String" default="Provide a valid position value (Greater than or equal to 0)" />
+    
+    <aura:attribute name="end" type="Integer" />
+    <aura:attribute name="status" type="Boolean" />
+    <aura:attribute name="status1" type="Boolean" default="false" />
+    <aura:attribute name="showinputbox" type="Boolean" default="false" />
+    <aura:attribute name="showError" type="Boolean" default="false"/>
+    <aura:attribute name="present" type="Boolean" default="false"/>
+    <aura:attribute name="showErrors" type="Boolean" default="false"/>
+    <aura:attribute name="errorMessage" type="String"/>
+    <aura:attribute name="post" type="String" default="" />
+    <aura:attribute name="picklist" type="String[]"/>
+    <aura:attribute name="contactruleid" type="Id"/>    
+    
+    <!-- INPUT COMPONENTS-->                
+    <aura:attribute name="bool" type="Boolean" default="true"/>
+    <aura:attribute name="show" type="Boolean" default="true"/>
+    <aura:attribute name="vals" type="String[]" />
+    <aura:attribute name="valse" type="String[]" />
+    <aura:attribute name="item" type="String" />
+    <aura:attribute name="itemobj" type="String" />
+    <aura:attribute name="name" type="String" />
+    
+    <!--END OF INPUT COMPONENTS-->
+    
+    
+    <aura:attribute name="textSplitFieldData" type="String" />
+    <aura:attribute name="textSplitFieldDataError" type="String" />
+    <aura:attribute name="textSplitFieldOptions" type="List" />   
+    <aura:attribute name="preValue" type="String" default="" />
+    <aura:attribute name="preValueError" type="String" default="" />
+    <aura:attribute name="postValue" type="String" default="" />
+    <aura:attribute name="postValueError" type="String" default="" />
+    <aura:attribute name="startPosition" type="Integer" />
+    <aura:attribute name="startPositionError" type="String" />
+    <aura:attribute name="endPosition" type="Integer" />
+    <aura:attribute name="endPositionError" type="String" />
+    
+    <aura:attribute name="DisplayValue" type="String" default="" />
+    <aura:attribute name="DevValue" type="String" default="" />
+    
+    <aura:attribute name="mappingContractDetail" type="Mapping_Contract__c"/>
+    <aura:attribute name="contractRuleDetail" type="Contract_Rule__c"/>
+    <aura:attribute name="mappingRuleDetail" type="Mapping_Rule__c"/>
+    <aura:attribute name="mappingRuleIndex" type="Integer" />       
+    <aura:attribute name="loadingSpinner" type="Boolean" default="false"/>
+    <aura:attribute name="isErrorFound" type="Boolean" default="false"/>    
+    <aura:attribute name="errorText" type="String" />
+    <aura:attribute name="directDataError" type="String" default=""/>    
+    <aura:method name="validateTransformationValue" action="{!c.handleValidateTransformationValue}" description="Sample method with parameters"/>    
+    
+    <aura:registerEvent name="errorEvent" type="c:errorEvent" /> 
+    <aura:registerEvent name="triggerSaveEvent" type="c:triggerSaveFieldsEvent" />         
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <lightning:overlayLibrary aura:id="overlayLib1"/>    
+    
+    <aura:if isTrue="{!v.loadingSpinner}">
+        <div class="slds-is-relative">
+            <br />
+            <br />
+            <br />
+            <br />
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+        <aura:set attribute="else">
+            <div class="slds-p-horizontal_xx-large">               
+                <lightning:select title="Field Name" required="true" label = "Field Name" class="{!v.textSplitFieldDataError }"
+                                  aura:id="textSplit" value="{!v.textSplitFieldData}" onchange="{!c.handleOnchangeFieldName}">
+                    <option text="--None--" value="" />
+                    <aura:iteration items="{!v.textSplitFieldOptions}" var="item">
+                        <option value="{!item.value}" text="{!item.label}"></option>
+                    </aura:iteration>
+                </lightning:select>
+                
+                <br/>
+                
+                <div class="slds-grid slds-gutters ">
+                    <div class="slds-col slds-size_6-of-12  " >
+                        <lightning:input class="{!v.preValueError}" name="prevalue"  value="{!v.preValue}" label="Pre-Value" />  
+                    </div>
+                    <div class="slds-col slds-size_6-of-12  " >
+                        <lightning:input class="{!v.postValueError}"  name="post"  value="{!v.postValue}" label="Post-Value" />                    
+                    </div> 
+                </div>                
+                <br></br>
+                <div class="slds-grid slds-gutters">
+                    <div class="slds-col slds-size_6-of-12  " >
+                        
+                        <lightning:input class="{!v.startPositionError}" required="true"  name="start" type="number" 
+                                         value="{!v.startPosition}" label="Start Position" 
+                                         min="0"  
+                                         messageWhenRangeUnderflow="{!v.startPositionErrorMessage}" 
+                                         messageWhenRangeOverflow="{!v.endPositionErrorMessage}" />                   
+                    </div>                        
+                    <div class="slds-col slds-size_6-of-12  " >
+                        
+                        <lightning:input class="{!v.endPositionError}" required="true" name="end" type="number" 
+                                         value="{!v.endPosition}" label="End Position" min="0"  
+                                         messageWhenRangeOverflow="{!v.endPositionErrorMessage}" 
+                                         messageWhenRangeUnderflow="{!v.startPositionErrorMessage}" />                                 
+                    </div>            
+                </div>  
+            </div>
+            <br></br>
+        </aura:set>
+    </aura:if>    
+</aura:component>

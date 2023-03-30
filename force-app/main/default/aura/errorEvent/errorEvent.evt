@@ -1,0 +1,4 @@
+<aura:event type="COMPONENT" description="Error event for create object field component" >
+    <aura:attribute name="isErrorFound" type="Boolean"/>    
+    <aura:attribute name="errorMessage" type="String"/>    
+</aura:event>

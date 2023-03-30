@@ -1,0 +1,19 @@
+.THIS .select-focus {
+  outline: #1589ee auto 5px;
+  outline-color: #1589ee;
+  outline-style: auto;
+  outline-width: 5px;
+  background-color: white;
+  box-shadow: 0 0 4px #0070d2;
+}
+.THIS .toggle {
+  display: none;
+}
+.THIS .icn svg {
+  fill: #16325c;
+}
+.THIS .slds-popover--tooltip {
+  width: 225px;
+  height: 45px;
+  padding: 0.25rem 0;
+}

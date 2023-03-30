@@ -1,0 +1,4 @@
+<aura:event type="COMPONENT" description="Cancel event for create object field component" >
+    <aura:attribute name="isCancelButtonClicked" type="Boolean"/>    
+    <aura:attribute name="type" type="String"/>   
+</aura:event>

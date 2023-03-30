@@ -1,0 +1,42 @@
+<aura:component controller="SFConnectController" implements="lightning:actionOverride,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes" access="global">
+    
+    <aura:attribute name="directData" type="String" default=""/>
+    <aura:attribute name="directFieldOptions" type="List" />   
+    
+    <aura:attribute name="mappingContractDetail" type="Mapping_Contract__c"/>
+    <aura:attribute name="contractRuleDetail" type="Contract_Rule__c"/>
+    <aura:attribute name="mappingRuleDetail" type="Mapping_Rule__c"/>
+    <aura:attribute name="mappingRuleIndex" type="Integer" />   
+    
+    <aura:attribute name="loadingSpinner" type="Boolean" default="false"/> 
+    <aura:attribute name="isErrorFound" type="Boolean" default="false"/>    
+    <aura:attribute name="errorText" type="String" />
+    <aura:attribute name="directDataError" type="String" default=""/>    
+    <aura:method name="validateTransformationValue" action="{!c.handleValidateTransformationValue}" description="Sample method with parameters"/>    
+    
+    <aura:registerEvent name="errorEvent" type="c:errorEvent" /> 
+    <aura:registerEvent name="triggerSaveEvent" type="c:triggerSaveFieldsEvent" />     
+    
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }"/>  
+    <aura:if isTrue="{!v.loadingSpinner}">
+        <div class="slds-is-relative">
+            <br />
+            <br />
+            <br />
+            <br />
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+        <aura:set attribute="else">             
+            <div class="slds-p-horizontal_xx-large">
+                <lightning:select title="Direct field value" label = "Field Name" class="{!v.directDataError + ' slds-p-around_xx-large'}"
+                                  aura:id="directField" value="{!v.directData}" onchange="{!c.onChangeDirectField}">
+                    <option text="--None--" value="" />
+                    <aura:iteration items="{!v.directFieldOptions}" var="item">
+                        <option value="{!item.value}" text="{!item.label}"></option>
+                    </aura:iteration>
+                </lightning:select>        
+                </div>
+            <br/>
+        </aura:set>
+    </aura:if>
+</aura:component>

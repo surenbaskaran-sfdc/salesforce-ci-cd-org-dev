@@ -1,0 +1,143 @@
+<aura:component controller="SFConnectController" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global" >
+    <aura:attribute name="jobRecord" type="Job__c" />
+    <aura:attribute name="jobRecordCopy" type="Job__c" />
+    <aura:attribute name="monthOptions" type="List"/>
+    <aura:attribute name="weekOptions" type="List"/>
+    <aura:attribute name="minutesOptions" type="List"/>
+    <aura:attribute name="showFooter" type="boolean" default="false"/>
+    <aura:attribute name="today" type="Date"/>
+    <aura:attribute name="errorRecords" type="List"/>
+    
+    <lightning:unsavedChanges aura:id="unsaved"
+                              onsave="{!c.handleSave}"
+                              ondiscard="{!c.handleCancel}" />
+    <aura:handler name="init" value="{!this}" action="{!c.doinit}"/>
+    <div class="slds-box slds-is-relative">
+        <div aura:id="uSpinnerContainer" class="userSpinner">
+            <lightning:spinner variant="brand" aura:id="uSpinner"/>
+        </div>
+        <div class="slds-grid slds-gutters">
+            <div class="slds-col slds-size_2-of-12" style="width: fit-content;padding-top: 6px;">
+                <span class="slds-p-top_xx-small" >
+                    Schedule Task
+                </span>
+            </div>
+            <div class="slds-col slds-size_3-of-12" style="width:226px;">
+                <span>
+                    <lightning:select disabled="{!v.jobRecordCopy.Active__c}" class='{!v.errorRecords[0]}' value="{!v.jobRecordCopy.Job_Type__c}" onchange="{!c.onScheduleTypeChange}">
+                        <option value="">--None--</option>
+                        <option value="Hourly">Hourly</option>
+                        <option value="Daily">Daily</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Monthly">Monthly</option>
+                    </lightning:select>
+                </span>
+            </div>
+            <div class="slds-col slds-size_1-of-12" style="width: fit-content;padding-top: 6px;">
+                <span>
+                    <aura:if isTrue="{!v.jobRecordCopy.Job_Type__c == 'Daily'}">
+                        at
+                    </aura:if>
+                    <aura:if isTrue="{!v.jobRecordCopy.Job_Type__c == 'Weekly'}">
+                        on
+                    </aura:if>
+                    <aura:if isTrue="{!v.jobRecordCopy.Job_Type__c == 'Monthly'}">
+                        on every
+                    </aura:if>
+                    <aura:if isTrue="{!v.jobRecordCopy.Job_Type__c == 'Hourly'}">
+                        at
+                    </aura:if>
+                </span>
+            </div>
+            <div class="slds-col slds-size_3-of-12" style="width: max-content;">
+                <span>
+                    <aura:if isTrue="{!v.jobRecordCopy.Job_Type__c == 'Daily'}">
+                        <lightning:input disabled="{!v.jobRecordCopy.Active__c}" class='{!v.errorRecords[1]}'  type="time" variant="label-hidden" value="{!v.jobRecordCopy.Time__c}" onchange="{!c.handleScheduleChange}"/>
+                    </aura:if>
+                    <aura:if isTrue="{!v.jobRecordCopy.Job_Type__c == 'Weekly'}">
+                        <lightning:radioGroup disabled="{!v.jobRecordCopy.Active__c}" class='{!v.errorRecords[2] }' variant="label-hidden" options="{! v.weekOptions }"
+                                              value="{!v.jobRecordCopy.Day__c}"
+                                              type="button" onchange="{!c.handleScheduleChange}"/>
+                    </aura:if>
+                    <aura:if isTrue="{!v.jobRecordCopy.Job_Type__c == 'Monthly'}">
+                        <lightning:select disabled="{!v.jobRecordCopy.Active__c}" class='{!v.errorRecords[3] }' value="{!v.jobRecordCopy.Day__c}" onchange="{!c.handleScheduleChange}">
+                            <option value="">--None--</option>
+                            <aura:iteration items="{!v.monthOptions}" var="option">
+                                <option value="{!option.value}">{!option.label}</option>
+                            </aura:iteration>
+                        </lightning:select>
+                    </aura:if>
+                    <aura:if isTrue="{!v.jobRecordCopy.Job_Type__c == 'Hourly'}">
+                        <lightning:select disabled="{!v.jobRecordCopy.Active__c}" class='{!v.errorRecords[4] }' value="{!v.jobRecordCopy.minutes__c}" onchange="{!c.handleScheduleChange}">
+                            <option value="">--None--</option>
+                            <aura:iteration items="{!v.minutesOptions}" var="option">
+                                <option value="{!option.value}">{!option.label}</option>
+                            </aura:iteration>
+                        </lightning:select>
+                    </aura:if>
+                </span>
+            </div>
+            <div class="slds-col slds-size_1-of-12" style="width: fit-content;padding-top: 6px;">
+                <span>
+                    <aura:if isTrue="{!v.jobRecordCopy.Job_Type__c == 'Weekly'}">
+                        at
+                    </aura:if>
+                    <aura:if isTrue="{!v.jobRecordCopy.Job_Type__c == 'Monthly'}">
+                        at
+                    </aura:if>
+                    <aura:if isTrue="{!v.jobRecordCopy.Job_Type__c == 'Hourly'}">
+                        <b>minutes past the hour</b>
+                    </aura:if>
+                </span>
+            </div>
+            <div class="slds-col slds-size_2-of-12" style="width: max-content;">
+                <span>
+                    <aura:if isTrue="{!v.jobRecordCopy.Job_Type__c == 'Weekly'}">
+                        <lightning:input disabled="{!v.jobRecordCopy.Active__c}" class='{!v.errorRecords[5] }' type="time" variant="label-hidden" value="{!v.jobRecordCopy.Time__c}" onchange="{!c.handleScheduleChange}"/>
+                    </aura:if>
+                    <aura:if isTrue="{!v.jobRecordCopy.Job_Type__c == 'Monthly'}">
+                        <lightning:input disabled="{!v.jobRecordCopy.Active__c}" class='{!v.errorRecords[6] }' type="time" variant="label-hidden" value="{!v.jobRecordCopy.Time__c}" onchange="{!c.handleScheduleChange}"/>
+                    </aura:if>
+                </span>
+            </div>
+        </div>
+        
+        <br/>
+        
+        <!--div class="slds-grid slds-gutters">
+            <div class="slds-col slds-size_2-of-12" style="width: fit-content;padding-top: 6px;">
+                <span class="slds-p-top_xx-small" >
+                    Start Date
+                </span>
+            </div>
+            <div class="slds-col slds-size_3-of-12" style="padding-left:36px;width:max-content;">
+                <span>
+                    <lightning:input aura:id="startDate" class='{!v.errorRecords[7] }' type="Date" variant="label-hidden" value="{!v.jobRecordCopy.Start_Date__c}" onchange="{!c.handleScheduleChange}" />
+                </span>
+            </div>
+        </div>
+        
+        <br/>
+        
+        <div class="slds-grid slds-gutters">
+            <div class="slds-col slds-size_2-of-12" style="width: fit-content;padding-top: 6px;">
+                <span class="slds-p-top_xx-small" >
+                    End Date
+                </span>
+            </div>
+            <div class="slds-col slds-size_3-of-12" style="padding-left: 41px;width: max-content;">
+                <span>
+                    <lightning:input aura:id="endDate" class='{!v.errorRecords[8] }' type="Date" variant="label-hidden" value="{!v.jobRecordCopy.End_Date__c}" onchange="{!c.handleScheduleChange}" />
+                </span>
+            </div>
+        </div>
+        
+        <br/-->
+        <aura:if isTrue="{!v.showFooter}">
+            <div class="slds-align_absolute-center">
+                <lightning:button variant="brand-outline" label="Cancel" title="Cancel" onclick="{!c.handleCancel}"/>
+                <lightning:button variant="brand" label="Save" title="Save" onclick="{!c.handleSave}"/>
+            </div>
+        </aura:if>
+    </div>
+</aura:component>

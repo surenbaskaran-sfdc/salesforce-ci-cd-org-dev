@@ -1,0 +1,9 @@
+.THIS .label-hidden > label {
+    display: none;
+}
+
+.THIS .popover {
+    position: absolute;
+    right: 73%; 
+    bottom: 67%;
+}
